@@ -10,11 +10,22 @@ GitHub Pages. Nada aqui exige CNPJ. Faça na ordem.
 1. **Crie uma planilha** nova no Google Sheets (com a conta pessoal de vocês).
    Ela será o banco de dados **e** o painel de controle.
 2. Menu **Extensões → Apps Script**. Abre o editor (script vinculado à planilha).
-3. **Cole os arquivos** de `backend/` no editor (um arquivo `.gs` para cada, com
-   o mesmo nome). Em ⚙️ *Project Settings*, marque *"Show appsscript.json"* e
-   cole o conteúdo de `backend/appsscript.json`.
-   > Alternativa p/ quem prefere linha de comando: use o `clasp`
-   > (`clasp push`) apontando para a pasta `backend/`.
+3. **Cole o código.** Escolha UM caminho:
+
+   **Caminho fácil (um arquivo só — recomendado):**
+   - No editor já existe um arquivo `Código.gs` com um `myFunction`.
+   - Clique nele, selecione tudo (`Ctrl/Cmd+A`), apague, e **cole o conteúdo de
+     `bundle/apps-script.gs`** (é o backend inteiro num arquivo). Salve (💾).
+   - Só isso. Não precisa criar vários arquivos nem mexer no `appsscript.json`
+     (o Apps Script pede as permissões sozinho ao rodar).
+
+   **Caminho modular (vários arquivos):**
+   - Use o `+` ao lado de *Files → Script* para criar cada arquivo. **Digite o
+     nome SEM `.gs`** (ex.: `Planilha`) — a extensão é automática. Repita para
+     `Codigo`, `Planilha`, `Identidade`, `Rsvp`, `Presentes`, `MercadoPago` e
+     cole o conteúdo de cada `backend/*.gs`.
+
+   **Caminho linha de comando:** `clasp push` apontando para `backend/`.
 4. **Configure os segredos** em ⚙️ *Project Settings → Script Properties*:
    | Propriedade | Valor |
    |---|---|
