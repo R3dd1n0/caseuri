@@ -1,0 +1,147 @@
+/**
+ * base.css — reset estrutural + TEMA em variáveis.
+ *
+ * A Mariana muda o visual editando só as variáveis abaixo (cores/fontes/raios).
+ * O resto é layout estrutural, propositalmente neutro (sem identidade visual).
+ */
+
+:root {
+  /* ---- TEMA (provisório e neutro — trocar depois) ---- */
+  --cor-fundo: #ffffff;
+  --cor-texto: #1a1a1a;
+  --cor-suave: #666666;
+  --cor-borda: #e2e2e2;
+  --cor-primaria: #333333;
+  --cor-primaria-texto: #ffffff;
+  --cor-cartao: #fafafa;
+  --cor-sucesso: #2e7d32;
+  --cor-erro: #b3261e;
+
+  --fonte-titulo: Georgia, 'Times New Roman', serif;
+  --fonte-corpo: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --raio: 10px;
+  --gap: 1rem;
+  --largura-max: 720px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte-corpo);
+  line-height: 1.55;
+}
+
+img { max-width: 100%; display: block; }
+
+h1, h2, h3 { font-family: var(--fonte-titulo); font-weight: 600; line-height: 1.2; }
+
+a { color: inherit; }
+
+.container {
+  width: 100%;
+  max-width: var(--largura-max);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ---- Botões / campos ---- */
+.botao {
+  display: inline-block;
+  padding: 0.7rem 1.2rem;
+  border: 1px solid var(--cor-primaria);
+  border-radius: var(--raio);
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+.botao--secundario { background: transparent; color: var(--cor-texto); }
+.botao[disabled] { opacity: 0.5; cursor: default; }
+
+.campo {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  font: inherit;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+}
+label { display: block; margin-bottom: 0.35rem; color: var(--cor-suave); }
+
+/* ---- Gate (landing) ---- */
+#gate {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+#gate .caixa { width: 100%; max-width: 420px; text-align: center; }
+#gate form { display: grid; gap: 0.8rem; margin-top: 1rem; }
+
+/* ---- Hub / seções ---- */
+#hub { display: none; }
+#hub.visivel { display: block; }
+
+.nav {
+  position: sticky; top: 0;
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+  padding: 0.6rem 1rem;
+  background: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda);
+  overflow-x: auto;
+}
+.nav a { text-decoration: none; color: var(--cor-suave); white-space: nowrap; font-size: 0.9rem; }
+
+section.secao {
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+.capa { text-align: center; padding: 4rem 0; }
+.capa h1 { font-size: clamp(2rem, 8vw, 3.5rem); margin: 0.2rem 0; }
+
+.contagem { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+.contagem div { min-width: 64px; }
+.contagem .num { font-size: 2rem; font-family: var(--fonte-titulo); }
+.contagem .rot { font-size: 0.75rem; color: var(--cor-suave); text-transform: uppercase; }
+
+/* ---- Presentes ---- */
+.grade-presentes { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
+@media (min-width: 560px) { .grade-presentes { grid-template-columns: 1fr 1fr; } }
+
+.card-presente {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-cartao);
+  padding: 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.card-presente.esgotado { opacity: 0.55; }
+.selo { font-size: 0.75rem; color: var(--cor-suave); }
+
+/* ---- PIX / modal ---- */
+.pix-area { display: grid; gap: 0.6rem; justify-items: center; text-align: center; }
+.pix-area img { width: 220px; height: 220px; }
+.copia-cola {
+  width: 100%; font-size: 0.8rem; word-break: break-all;
+  padding: 0.5rem; border: 1px dashed var(--cor-borda); border-radius: var(--raio);
+}
+
+.msg { padding: 0.6rem 0.8rem; border-radius: var(--raio); font-size: 0.9rem; }
+.msg--erro { color: var(--cor-erro); }
+.msg--ok { color: var(--cor-sucesso); }
+.lembrete { color: var(--cor-suave); font-size: 0.9rem; }
+
+[hidden] { display: none !important; }
+
+/* ---- Tema escuro: só quando a Mariana definir a paleta escura ----
+@media (prefers-color-scheme: dark) {
+  :root { --cor-fundo:#111; --cor-texto:#eee; ...  }
+}
+*/

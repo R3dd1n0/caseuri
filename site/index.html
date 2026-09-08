@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex"><!-- site privado: fora de buscadores -->
+  <title>Casamento</title>
+  <link rel="stylesheet" href="assets/base.css">
+</head>
+<body>
+
+  <!-- ============ GATE (landing por nome) ============ -->
+  <div id="gate" hidden>
+    <div class="caixa">
+      <h1 data-bind="gate.titulo">·</h1>
+      <p data-bind="gate.instrucao">·</p>
+      <form id="gate-form">
+        <input id="gate-nome" class="campo" type="text" autocomplete="name" required>
+        <button id="gate-botao" class="botao" type="submit">Entrar</button>
+        <div id="gate-msg" class="msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ HUB (conteúdo do site) ============ -->
+  <div id="hub">
+    <nav class="nav container">
+      <a href="#capa" data-bind="casal.titulo">·</a>
+      <a href="#quando" data-bind="secoes.quandoOnde.titulo">·</a>
+      <a href="#chegar" data-bind="secoes.comoChegar.titulo">·</a>
+      <a href="#dress" data-bind="secoes.dressCode.titulo">·</a>
+      <a href="#rsvp" data-bind="rsvp.titulo">·</a>
+      <a href="#presentes" data-bind="presentes.titulo">·</a>
+    </nav>
+
+    <header id="capa" class="capa container">
+      <p data-bind="evento.dataTexto">·</p>
+      <h1 data-bind="casal.titulo">·</h1>
+      <div id="contagem" class="contagem"></div>
+    </header>
+
+    <main class="container">
+      <section id="historia" class="secao">
+        <h2 data-bind="secoes.historia.titulo">·</h2>
+        <p data-bind="secoes.historia.corpo">·</p>
+      </section>
+
+      <section id="quando" class="secao">
+        <h2 data-bind="secoes.quandoOnde.titulo">·</h2>
+        <p data-bind="secoes.quandoOnde.corpo">·</p>
+        <p><strong data-bind="evento.dataTexto">·</strong> — <span data-bind="evento.horario">·</span></p>
+        <p data-bind="evento.local">·</p>
+      </section>
+
+      <section id="chegar" class="secao">
+        <h2 data-bind="secoes.comoChegar.titulo">·</h2>
+        <p data-bind="secoes.comoChegar.corpo">·</p>
+        <p data-bind="evento.endereco">·</p>
+        <p>
+          <a id="link-maps" class="botao botao--secundario" target="_blank" rel="noopener">Google Maps</a>
+          <a id="link-waze" class="botao botao--secundario" target="_blank" rel="noopener">Waze</a>
+        </p>
+      </section>
+
+      <section id="dress" class="secao">
+        <h2 data-bind="secoes.dressCode.titulo">·</h2>
+        <p data-bind="secoes.dressCode.corpo">·</p>
+      </section>
+
+      <section id="info" class="secao">
+        <h2 data-bind="secoes.informacoes.titulo">·</h2>
+        <p data-bind="secoes.informacoes.corpo">·</p>
+      </section>
+
+      <!-- ---- RSVP ---- -->
+      <section id="rsvp" class="secao">
+        <h2 data-bind="rsvp.titulo">·</h2>
+        <p>Convite: <strong id="rsvp-grupo">·</strong></p>
+        <form id="rsvp-form">
+          <label><input type="radio" name="rsvp-status" value="confirmado"> Vou comparecer</label>
+          <label><input type="radio" name="rsvp-status" value="recusado"> Não poderei ir</label>
+          <div id="rsvp-qtd-wrap" hidden>
+            <label for="rsvp-qtd">Quantas pessoas</label>
+            <select id="rsvp-qtd" class="campo"></select>
+          </div>
+          <label for="rsvp-obs">Recado / restrição alimentar (opcional)</label>
+          <textarea id="rsvp-obs" class="campo" rows="2"></textarea>
+          <button class="botao" type="submit">Salvar resposta</button>
+          <div id="rsvp-msg" class="msg"></div>
+        </form>
+        <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
+      </section>
+
+      <!-- ---- Presentes ---- -->
+      <section id="presentes" class="secao">
+        <h2 data-bind="presentes.titulo">·</h2>
+        <p data-bind="presentes.intro">·</p>
+        <div id="presentes-lista" class="grade-presentes"></div>
+        <div id="presentes-msg" class="msg"></div>
+      </section>
+
+      <section id="recados" class="secao">
+        <h2 data-bind="secoes.recados.titulo">·</h2>
+        <p data-bind="secoes.recados.corpo">·</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ Modal PIX ============ -->
+  <div id="pix-modal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:1rem;">
+    <div style="background:var(--cor-fundo);border-radius:var(--raio);padding:1.2rem;max-width:360px;width:100%;">
+      <div id="pix-conteudo"></div>
+      <button id="pix-fechar" class="botao botao--secundario" style="margin-top:1rem;width:100%;">Fechar</button>
+    </div>
+  </div>
+
+  <!-- ordem importa: config e conteúdo antes dos módulos -->
+  <script src="config.js"></script>
+  <script src="conteudo.js"></script>
+  <script src="assets/sessao.js"></script>
+  <script src="assets/api.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

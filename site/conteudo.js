@@ -1,0 +1,80 @@
+/**
+ * conteudo.js — CAMADA DE CONTEÚDO (desacoplada da arquitetura).
+ *
+ * Tudo que é texto/dado do casamento vive AQUI. A Mariana pode editar este
+ * arquivo à vontade sem tocar em nenhuma lógica. Cores e fontes ficam nas
+ * variáveis CSS de `assets/base.css`.
+ *
+ * ⚠️ Os valores abaixo são PLACEHOLDERS PROVISÓRIOS só para o esqueleto ter o
+ * que mostrar. Trocar sem medo.
+ */
+window.CONTEUDO = {
+  casal: {
+    nome1: 'Felipe',
+    nome2: 'Mariana',
+    // usado no <title> e cabeçalhos
+    titulo: 'Felipe & Mariana'
+  },
+
+  evento: {
+    // Data/hora em ISO (usada na contagem regressiva). PROVISÓRIO: 12/11/2026.
+    dataISO: '2026-11-12T00:00:00-03:00',
+    dataTexto: '12 de novembro de 2026',
+    horario: 'Horário a definir',
+    local: 'Local a definir',
+    endereco: 'Endereço a definir',
+    mapsUrl: '#',   // link "abrir no Google Maps"
+    wazeUrl: '#'    // link "abrir no Waze"
+  },
+
+  // Cada seção tem título + corpo. Textos provisórios.
+  secoes: {
+    historia: {
+      titulo: 'Nossa história',
+      corpo: 'Texto da história do casal entra aqui.'
+    },
+    quandoOnde: {
+      titulo: 'Quando & onde',
+      corpo: 'Detalhes de data, horário e cronograma entram aqui.'
+    },
+    comoChegar: {
+      titulo: 'Como chegar',
+      corpo: 'Instruções de trajeto e estacionamento entram aqui.'
+    },
+    dressCode: {
+      titulo: 'Dress code',
+      corpo: 'Descrição do traje entra aqui.'
+    },
+    informacoes: {
+      titulo: 'Informações',
+      corpo: 'Recados gerais (crianças, presentes, etc.) entram aqui.'
+    },
+    recados: {
+      titulo: 'Recados',
+      corpo: 'Contato dos noivos e observações finais entram aqui.'
+    }
+  },
+
+  rsvp: {
+    titulo: 'Confirme sua presença',
+    // Aviso sutil e não agressivo para quem ainda não deu presente.
+    lembreteSemPresente: 'Sem pressa 💛 quando quiser, dá uma olhada na lista.'
+  },
+
+  presentes: {
+    titulo: 'Lista de presentes',
+    intro: 'Escolha um presente ou contribua com o valor que quiser (via PIX).',
+    // rótulo do card de contribuição livre (item tipo "livre" no catálogo)
+    livreChamada: 'Contribuir com um valor livre'
+  },
+
+  // Textos da landing (gate por nome)
+  gate: {
+    titulo: 'Você está convidado',
+    instrucao: 'Digite seu nome para entrar',
+    placeholder: 'Seu nome',
+    botao: 'Entrar',
+    erroNaoEncontrado: 'Não encontramos seu nome. Confira a grafia ou fale com os noivos.',
+    pedirSobrenome: 'Temos mais de uma pessoa com esse nome. Digite também um sobrenome.'
+  }
+};

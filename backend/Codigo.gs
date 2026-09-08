@@ -28,17 +28,11 @@ function doGet(e) {
  */
 function doPost(e) {
   var corpo = lerCorpoJson(e);
-
-  // Heurística de webhook do Mercado Pago: vem sem `action`, mas com
-  // indícios de notificação de pagamento (query `type`/`topic` ou corpo com id).
-  var p = (e && e.parameter) || {};
-  var pareceWebhook = !corpo.action &&
-    (p.type || p.topic || p['data.id'] || p.id || corpo.type || corpo.action === undefined && (corpo.data || corpo.resource));
-  if (pareceWebhook && !corpo.action) {
-    return webhookMercadoPago(e, corpo); // MercadoPago.gs
-  }
-
-  return rotear(e, corpo);
+  // Ação conhecida do frontend -> roteia. Qualquer outra coisa (inclusive o
+  // corpo do webhook do Mercado Pago, que traz action="payment.updated") é
+  // tratada como notificação de pagamento.
+  if (corpo.action && ROTAS[corpo.action]) return rotear(e, corpo);
+  return webhookMercadoPago(e, corpo); // MercadoPago.gs
 }
 
 /** Despacha para o handler certo com base em `action`. */
