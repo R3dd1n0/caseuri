@@ -1,0 +1,19 @@
+# === Segredos e dados privados — NUNCA versionar ===
+# A lista de convidados vive só na planilha do Google, não aqui.
+# Qualquer arquivo local de convidados/segredos fica de fora.
+convidados*.csv
+convidados*.json
+convidados*.xlsx
+segredos*
+*.secret
+.env
+.env.*
+
+# Config real do frontend (a URL do backend). Versione só o exemplo.
+site/config.js
+
+# Sistema
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
