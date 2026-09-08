@@ -26,16 +26,23 @@ GitHub Pages. Nada aqui exige CNPJ. Faça na ordem.
      cole o conteúdo de cada `backend/*.gs`.
 
    **Caminho linha de comando:** `clasp push` apontando para `backend/`.
-4. **Configure os segredos** em ⚙️ *Project Settings → Script Properties*:
-   | Propriedade | Valor |
-   |---|---|
-   | `MP_ACCESS_TOKEN` | (preenchido no bloco B) |
-   | `TOKEN_SECRET` | uma frase aleatória longa (assina os tokens de sessão) |
-   | `WEBHOOK_URL` | (preenchido no fim do bloco A, após o deploy) |
-   | `SHEET_ID` | opcional; só se o script não for vinculado à planilha |
+4. **Segredos (Script Properties) — cada um entra no seu momento.** Não é
+   preciso ter todos agora; eles têm origens diferentes:
+   | Propriedade | De onde vem | Quando criar |
+   |---|---|---|
+   | `TOKEN_SECRET` | **Você inventa** (frase aleatória longa; assina os tokens de sessão) | **Agora** |
+   | `WEBHOOK_URL` | A URL do Web App — **só existe após o deploy** (passo 7) | Depois do deploy |
+   | `MP_ACCESS_TOKEN` | Painel do Mercado Pago (Bloco B) | Ao configurar o MP |
+   | `SHEET_ID` | opcional; só se o script não for vinculado à planilha | — |
+
+   > Em ⚙️ *Project Settings → Script Properties → Add script property*.
+   > Agora crie só o **`TOKEN_SECRET`**. Os outros dois você adiciona nos passos
+   > 7 e no Bloco B. O código não quebra sem eles — só o PIX fica inativo até o
+   > `MP_ACCESS_TOKEN` existir.
 5. No editor, rode a função **`setupPlanilha`** uma vez (selecione no topo e
    ▶️ *Run*). Autorize os escopos quando pedir. Isso cria as abas
    `Convidados`, `Presentes`, `Pagamentos`, `Config` com exemplos.
+   *(este passo não usa segredo algum.)*
 6. **Publique o Web App:** *Deploy → New deployment → tipo Web app*:
    - *Execute as:* **Você (mesmo)**
    - *Who has access:* **Anyone** (necessário p/ o site e o webhook do MP)
