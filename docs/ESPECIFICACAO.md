@@ -78,6 +78,26 @@ GitHub Pages não guarda dados nem recebe webhook (POST). Por isso:
 - **Pagamento**: Mercado Pago (PSP), conta pessoa física. Gera QR Code PIX
   dinâmico por item e dispara webhook quando o pagamento cai.
 
+### 4.1. Por que Apps Script e não Supabase/Vercel
+
+Para ~50 convidados num evento único, Apps Script + Sheets é a escolha certa,
+não um quebra-galho:
+
+- **Grátis de verdade e sem pausa.** O free tier do Supabase **pausa o projeto
+  após ~7 dias inativo** — ruim para um site que fica meses parado.
+- **A planilha já é o painel** do casal; com Supabase teríamos que construir uma
+  tela de admin.
+- **Escala trivial.** A corrida "duas pessoas no mesmo item" é resolvida com
+  `LockService`; o volume torna colisão quase impossível.
+- **Robustez do pagamento** é garantida sem banco externo: (a) sempre
+  re-consultar o pagamento na API do Mercado Pago (não confiar só no POST do
+  webhook) e (b) um **gatilho por tempo** que varre pagamentos pendentes a cada
+  poucos minutos, como rede de segurança.
+
+Escalada só-se-precisar: se a latência/confiabilidade do pagamento incomodar na
+prática, movemos **apenas** essa parte para um Cloudflare Worker, sem reescrever
+o resto. Supabase/Vercel só se o projeto virasse algo muito maior.
+
 ## 5. Modelo de dados (abas da planilha)
 
 **Aba `Convidados`** (você pré-carrega antes de publicar):
@@ -114,14 +134,36 @@ GitHub Pages não guarda dados nem recebe webhook (POST). Por isso:
 
 1. Convidado abre o link (o mesmo para todos, vai no convite).
 2. Landing pede: **"Digite seu nome para entrar."** (campo de texto livre).
-3. Frontend envia o nome ao Apps Script; ele **normaliza** (minúsculas, sem
-   acento) e procura na aba `Convidados`. A lista **nunca** é exposta ao
-   navegador.
-4. Bate → devolve um token/id do convite; frontend salva no localStorage e
-   libera o site. (Opcional: pedir sobrenome para confirmar.)
-5. Não bate → mensagem gentil ("não achamos seu nome, confira ou fale com os
+3. Frontend envia o nome ao Apps Script; ele aplica a **regra de match** (§6.1)
+   contra a aba `Convidados`. A lista **nunca** é exposta ao navegador.
+4. Match único → devolve um token/id do convite; frontend salva no localStorage
+   e libera o site.
+5. Vários matches → pede um sobrenome a mais até desambiguar.
+6. Nenhum match → mensagem gentil ("não achamos seu nome, confira ou fale com os
    noivos"). Estranho não entra.
-6. Próximas visitas no mesmo aparelho: entra direto (sessão salva).
+7. Próximas visitas no mesmo aparelho: entra direto (sessão salva).
+
+### 6.1. Regra de match de nomes
+
+Normalização dos dois lados: minúsculas, remoção de acentos, colapso de
+espaços e **remoção de partículas** (`de`, `da`, `do`, `das`, `dos`, `e`).
+
+Dado o que o convidado digitou = `[primeiro, sob_1, ..., sob_k]` e o nome
+completo do convidado = `[PRIMEIRO, SOB_1, ..., SOB_n]`:
+
+- **casa** se `primeiro == PRIMEIRO` **e** `{sob_1..sob_k}` é subconjunto de
+  `{SOB_1..SOB_n}` (qualquer combinação de sobrenomes, em qualquer ordem, não
+  precisa todos).
+- Ex.: "Felipe Lima de Araújo da Silva" (sobrenomes = {lima, araujo, silva})
+  aceita: `felipe lima`, `felipe araujo`, `felipe silva`, `felipe lima araujo`,
+  `felipe araujo silva`, `felipe lima araujo silva`, com ou sem `de/da`.
+
+**Desambiguação:** o sistema coleta *todos* os convidados que casam. `1` →
+entra; `>1` → pede mais um sobrenome; `0` → não encontrado. Isso cobre o caso
+de dois "Felipe" ou famílias com o mesmo sobrenome.
+
+**Privacidade:** a lista de nomes reais mora só na planilha/backend. **Nunca**
+vai para o repositório do GitHub (público) nem para o JS do site.
 
 ## 7. Fluxo de RSVP
 
