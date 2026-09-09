@@ -6,21 +6,21 @@
  */
 
 :root {
-  /* ---- TEMA (provisório e neutro — trocar depois) ---- */
-  --cor-fundo: #ffffff;
-  --cor-texto: #1a1a1a;
-  --cor-suave: #666666;
-  --cor-borda: #e2e2e2;
-  --cor-primaria: #333333;
-  --cor-primaria-texto: #ffffff;
-  --cor-cartao: #fafafa;
-  --cor-sucesso: #2e7d32;
-  --cor-erro: #b3261e;
+  /* ---- TEMA — identidade do casamento (monograma MF) ---- */
+  --cor-fundo: #FDF8F0;          /* creme/marfim (papel) */
+  --cor-texto: #1B1918;          /* quase-preto */
+  --cor-suave: #8a7361;          /* marrom suave (texto de apoio) */
+  --cor-borda: #E4D7C3;          /* bege (bordas/textura) */
+  --cor-primaria: #740C23;       /* bordô/vinho (monograma) */
+  --cor-primaria-texto: #FDF8F0; /* creme sobre bordô */
+  --cor-cartao: #FBF3E7;         /* creme levemente mais quente */
+  --cor-sucesso: #5c7a3a;
+  --cor-erro: #9c2b2b;
 
-  --fonte-titulo: Georgia, 'Times New Roman', serif;
-  --fonte-corpo: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fonte-titulo: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --fonte-corpo: 'Jost', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  --raio: 10px;
+  --raio: 8px;
   --gap: 1rem;
   --largura-max: 720px;
 }
@@ -38,7 +38,11 @@ html, body {
 
 img { max-width: 100%; display: block; }
 
-h1, h2, h3 { font-family: var(--fonte-titulo); font-weight: 600; line-height: 1.2; }
+h1, h2, h3 { font-family: var(--fonte-titulo); font-weight: 600; line-height: 1.15; color: var(--cor-primaria); letter-spacing: .01em; }
+
+/* ---- Monograma MF ---- */
+.monograma { display: block; width: 118px; height: auto; margin: 0 auto 1.2rem; }
+.capa .monograma { width: 168px; margin-bottom: 1.6rem; }
 
 a { color: inherit; }
 
@@ -103,8 +107,9 @@ section.secao {
   padding: 2.5rem 0;
   border-bottom: 1px solid var(--cor-borda);
 }
-.capa { text-align: center; padding: 4rem 0; }
-.capa h1 { font-size: clamp(2rem, 8vw, 3.5rem); margin: 0.2rem 0; }
+.capa { text-align: center; padding: 4rem 0 3rem; }
+.capa h1 { font-size: clamp(2.6rem, 10vw, 4.5rem); margin: 0.3rem 0; font-weight: 600; }
+.capa > p { color: var(--cor-suave); text-transform: uppercase; letter-spacing: .22em; font-size: .8rem; margin: 0; }
 
 .contagem { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
 .contagem div { min-width: 64px; }
