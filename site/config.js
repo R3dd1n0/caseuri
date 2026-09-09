@@ -4,5 +4,5 @@
  * Preencha depois do deploy (ver docs/SETUP.md).
  */
 window.CONFIG = {
-  BASE_URL: 'COLE_AQUI_A_URL_DO_WEB_APP'
+  BASE_URL: 'https://script.google.com/macros/s/AKfycbzpIF7aK9hL1hWFrQEBbeNA9lF_cprse71SNE8BUjetEedCa4dWKczymiuZ12vMmCdrjw/exec'
 };
