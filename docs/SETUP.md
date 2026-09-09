@@ -95,11 +95,13 @@ abra `http://localhost:8000` (com o `BASE_URL` já apontando para o Web App).
 - **Convidados:** aba `Convidados` — lista **nominal, uma linha por pessoa**.
   Pessoas do mesmo convite compartilham o mesmo `convite_id` (uma confirma pelas
   outras). Acompanhantes também entram como linhas próprias; **não** há campo de
-  quantidade. Ex.:
-  | id | convite_id | grupo | nome |
-  |----|-----------|-------|------|
-  | p001 | c001 | Família Silva | Felipe Araujo Silva |
-  | p002 | c001 | Família Silva | Mariana Souza Silva |
+  quantidade. A coluna `categoria` (`adulto` / `crianca_meia` / `crianca_gratis`)
+  serve para contagem; **crianças não logam** (ficam fora da busca por nome),
+  mas aparecem no convite para os noivos confirmarem. Ex.:
+  | id | convite_id | grupo | nome | categoria |
+  |----|-----------|-------|------|-----------|
+  | p001 | c001 | Felipe & Mariana | Felipe Lima de Araujo | adulto |
+  | p002 | c001 | Felipe & Mariana | Mariana Marinho Banhos Dias | adulto |
   > Se você já rodou o `setupPlanilha` numa versão anterior, o cabeçalho antigo
   > da aba `Convidados` ficou diferente. **Apague a aba `Convidados`** e rode
   > `setupPlanilha` de novo para recriá-la no formato novo.

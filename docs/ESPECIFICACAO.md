@@ -110,9 +110,14 @@ acompanhantes" — quem não foi nomeado não é esperado.
 | convite_id | agrupa pessoas do mesmo convite (uma confirma pelas outras) |
 | grupo | rótulo do convite (ex.: "Família Silva"), opcional |
 | nome | nome completo da pessoa (usado no match e na exibição) |
+| categoria | `adulto` / `crianca_meia` / `crianca_gratis` (para contagem) |
 | rsvp_status | pendente / confirmado / recusado (por pessoa) |
 | rsvp_obs | restrição alimentar / recado (por pessoa), opcional |
 | rsvp_atualizado_em | timestamp ISO |
+
+> **Crianças não logam:** linhas com `categoria` começando por `crianca` ficam
+> **fora da busca por nome** (ninguém entra como criança), mas continuam no
+> convite — os noivos veem e confirmam por elas pelo login do próprio convite.
 
 > "Já deu presente?" não é uma coluna: é **derivado** do livro-razão
 > `Pagamentos` (algum pagamento `confirmado` para aquele `convite_id`).

@@ -18,6 +18,7 @@ var ABAS = {
       'convite_id',         // agrupa pessoas do mesmo convite
       'grupo',              // rótulo do convite, ex.: "Família Silva" (opcional)
       'nome',               // nome completo da pessoa (usado no match e exibição)
+      'categoria',          // adulto | crianca_meia | crianca_gratis
       'rsvp_status',        // pendente | confirmado | recusado (por pessoa)
       'rsvp_obs',           // recado / restrição alimentar (por pessoa, opcional)
       'rsvp_atualizado_em'  // timestamp ISO
@@ -177,8 +178,8 @@ function setupPlanilha() {
   var conv = lerTabela(ABAS.CONVIDADOS);
   if (conv.linhas.length === 0) {
     conv.sheet.getRange(2, 1, 2, ABAS.CONVIDADOS.colunas.length).setValues([
-      ['p001', 'c001', 'Família Exemplo', 'Fulano de Tal da Silva', 'pendente', '', ''],
-      ['p002', 'c001', 'Família Exemplo', 'Beltrana Exemplo Souza', 'pendente', '', '']
+      ['p001', 'c001', 'Família Exemplo', 'Fulano de Tal da Silva', 'adulto', 'pendente', '', ''],
+      ['p002', 'c001', 'Família Exemplo', 'Beltrana Exemplo Souza', 'adulto', 'pendente', '', '']
     ]);
   }
 

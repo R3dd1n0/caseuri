@@ -55,6 +55,8 @@ function acaoIdentificar(params) {
   var t = lerTabela(ABAS.CONVIDADOS);
   var convitesCasados = {};
   t.linhas.forEach(function (p) {
+    // Crianças não logam: não entram na busca por nome (mas ficam no convite).
+    if (String(p.categoria || 'adulto').indexOf('crianca') === 0) return;
     if (nomeCasa(digitado, p.nome)) convitesCasados[p.convite_id] = true;
   });
   var ids = Object.keys(convitesCasados);
@@ -86,7 +88,7 @@ function conviteResposta(conviteId) {
     ok: true,
     grupo: info ? info.grupo : '',
     pessoas: (info ? info.pessoas : []).map(function (p) {
-      return { id: p.id, nome: p.nome, status: p.status, obs: p.obs };
+      return { id: p.id, nome: p.nome, categoria: p.categoria, status: p.status, obs: p.obs };
     }),
     deuPresente: conviteDeuPresente(conviteId)
   };
@@ -99,7 +101,7 @@ function conviteInfo(conviteId) {
     return String(p.convite_id) === String(conviteId);
   }).map(function (p) {
     return {
-      id: p.id, nome: p.nome, grupo: p.grupo,
+      id: p.id, nome: p.nome, grupo: p.grupo, categoria: p.categoria || 'adulto',
       status: p.rsvp_status || 'pendente', obs: p.rsvp_obs || '', _linha: p._linha
     };
   });

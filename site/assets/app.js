@@ -145,7 +145,8 @@
 
     estado.pessoas.forEach(function (p) {
       var bloco = el('div', { class: 'pessoa-rsvp' });
-      bloco.appendChild(el('strong', { text: p.nome }));
+      var ehCrianca = String(p.categoria || '').indexOf('crianca') === 0;
+      bloco.appendChild(el('strong', { text: p.nome + (ehCrianca ? ' (criança)' : '') }));
       var opcoes = el('div', { class: 'rsvp-opcoes' });
       [['confirmado', 'Vou'], ['recusado', 'Não vou']].forEach(function (par) {
         var lbl = el('label');
