@@ -77,14 +77,8 @@
         <h2 data-bind="rsvp.titulo">·</h2>
         <p>Convite: <strong id="rsvp-grupo">·</strong></p>
         <form id="rsvp-form">
-          <label><input type="radio" name="rsvp-status" value="confirmado"> Vou comparecer</label>
-          <label><input type="radio" name="rsvp-status" value="recusado"> Não poderei ir</label>
-          <div id="rsvp-qtd-wrap" hidden>
-            <label for="rsvp-qtd">Quantas pessoas</label>
-            <select id="rsvp-qtd" class="campo"></select>
-          </div>
-          <label for="rsvp-obs">Recado / restrição alimentar (opcional)</label>
-          <textarea id="rsvp-obs" class="campo" rows="2"></textarea>
+          <!-- uma pessoa por linha (lista nominal) — renderizado pelo app.js -->
+          <div id="rsvp-pessoas"></div>
           <button class="botao" type="submit">Salvar resposta</button>
           <div id="rsvp-msg" class="msg"></div>
         </form>

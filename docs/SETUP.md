@@ -92,8 +92,17 @@ abra `http://localhost:8000` (com o `BASE_URL` já apontando para o Web App).
 ## Conteúdo e dados (depois, sem mexer no código)
 - **Textos/data/nomes:** `site/conteudo.js`. **Cores/fontes:** variáveis no topo
   de `site/assets/base.css`.
-- **Convidados:** aba `Convidados` da planilha. Coluna `nomes` aceita vários
-  nomes por convite separados por `;` (ex.: `Felipe Araujo; Mariana Souza`).
+- **Convidados:** aba `Convidados` — lista **nominal, uma linha por pessoa**.
+  Pessoas do mesmo convite compartilham o mesmo `convite_id` (uma confirma pelas
+  outras). Acompanhantes também entram como linhas próprias; **não** há campo de
+  quantidade. Ex.:
+  | id | convite_id | grupo | nome |
+  |----|-----------|-------|------|
+  | p001 | c001 | Família Silva | Felipe Araujo Silva |
+  | p002 | c001 | Família Silva | Mariana Souza Silva |
+  > Se você já rodou o `setupPlanilha` numa versão anterior, o cabeçalho antigo
+  > da aba `Convidados` ficou diferente. **Apague a aba `Convidados`** e rode
+  > `setupPlanilha` de novo para recriá-la no formato novo.
 - **Presentes:** aba `Presentes` (tipo `item` esgota; tipo `livre` é
   contribuição de qualquer valor).
 - A **lista de convidados nunca vai para o GitHub** — vive só na planilha.

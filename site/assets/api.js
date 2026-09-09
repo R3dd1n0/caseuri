@@ -33,8 +33,8 @@
   window.API = {
     identificar: function (nome) { return post({ action: 'identificar', nome: nome }); },
     sessao: function (token) { return post({ action: 'sessao', token: token }); },
-    rsvpSalvar: function (token, status, qtd, obs) {
-      return post({ action: 'rsvpSalvar', token: token, status: status, qtd: qtd, obs: obs });
+    rsvpSalvar: function (token, respostas) {
+      return post({ action: 'rsvpSalvar', token: token, respostas: respostas });
     },
     presentesListar: function () { return get('presentesListar', {}); },
     presenteReservar: function (token, presenteId, mensagem) {

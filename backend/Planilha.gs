@@ -10,16 +10,17 @@
 var ABAS = {
   CONVIDADOS: {
     nome: 'Convidados',
+    // Lista NOMINAL: uma linha por PESSOA. Acompanhantes também são nomeados.
+    // Pessoas do mesmo convite compartilham o mesmo convite_id (uma pessoa
+    // confirma por todas do seu convite). Não existe "número de acompanhantes".
     colunas: [
-      'id',                 // id do convite (um convite pode ter várias pessoas)
-      'grupo',              // rótulo exibido, ex.: "Felipe & Mariana"
-      'nomes',              // nomes do convite separados por ';' (usados no match)
-      'max_acompanhantes',  // quantas pessoas esse convite pode confirmar
-      'rsvp_status',        // pendente | confirmado | recusado
-      'rsvp_qtd',           // quantos vão, de fato
-      'rsvp_obs',           // restrição alimentar / recado
-      'rsvp_atualizado_em', // timestamp ISO
-      'deu_presente'        // sim | (vazio) — para o aviso não agressivo
+      'id',                 // id único da pessoa (chave da linha)
+      'convite_id',         // agrupa pessoas do mesmo convite
+      'grupo',              // rótulo do convite, ex.: "Família Silva" (opcional)
+      'nome',               // nome completo da pessoa (usado no match e exibição)
+      'rsvp_status',        // pendente | confirmado | recusado (por pessoa)
+      'rsvp_obs',           // recado / restrição alimentar (por pessoa, opcional)
+      'rsvp_atualizado_em'  // timestamp ISO
     ]
   },
   PRESENTES: {
@@ -172,11 +173,12 @@ function setupPlanilha() {
     ]);
   }
 
-  // Convite-exemplo (PLACEHOLDER — a lista real de convidados entra depois).
+  // Convite-exemplo (PLACEHOLDER): um convite com DUAS pessoas nomeadas.
   var conv = lerTabela(ABAS.CONVIDADOS);
   if (conv.linhas.length === 0) {
-    conv.sheet.getRange(2, 1, 1, ABAS.CONVIDADOS.colunas.length).setValues([
-      ['c001', 'Convidado Exemplo', 'Fulano de Tal da Silva', 2, 'pendente', '', '', '', '']
+    conv.sheet.getRange(2, 1, 2, ABAS.CONVIDADOS.colunas.length).setValues([
+      ['p001', 'c001', 'Família Exemplo', 'Fulano de Tal da Silva', 'pendente', '', ''],
+      ['p002', 'c001', 'Família Exemplo', 'Beltrana Exemplo Souza', 'pendente', '', '']
     ]);
   }
 

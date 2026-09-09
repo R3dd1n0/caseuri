@@ -32,21 +32,26 @@ duas entradas (`doGet`, `doPost`), então tudo é roteado por um campo **`action
 Aplica a regra de match (§6.1 da especificação).
 
 - **1 convite casa:**
-  `{ ok:true, resultado:"unico", token:"…", grupo:"…", maxAcompanhantes:2, rsvp:{…} }`
+  `{ ok:true, resultado:"unico", token:"…", grupo:"…", pessoas:[{id,nome,status,obs}], deuPresente:false }`
 - **>1 casa:** `{ ok:true, resultado:"multiplo", erro:"precisa_desambiguar" }`
   (frontend pede mais um sobrenome e repete)
 - **0 casa:** `{ ok:false, erro:"nome_nao_encontrado" }`
 
+> Lista **nominal**: um convite tem uma ou mais PESSOAS nomeadas (inclusive
+> acompanhantes). Não existe "número de acompanhantes". `pessoas[].status` é
+> `pendente | confirmado | recusado`.
+
 ## 2. `sessao` — revalidar token salvo
 `POST { action:"sessao", token:"…" }`
-→ `{ ok:true, grupo, maxAcompanhantes, rsvp, deuPresente }` ou
+→ `{ ok:true, grupo, pessoas:[{id,nome,status,obs}], deuPresente }` ou
 `{ ok:false, erro:"token_invalido" }`.
 Usado quando o dispositivo já tem sessão salva (entra direto).
 
-## 3. `rsvpSalvar` — confirmar / recusar presença
-`POST { action:"rsvpSalvar", token, status:"confirmado"|"recusado", qtd:2, obs:"" }`
-→ `{ ok:true, rsvp:{ status, qtd, obs, atualizadoEm } }`.
-Pode ser chamado de novo para alterar a resposta.
+## 3. `rsvpSalvar` — confirmar / recusar presença POR PESSOA
+`POST { action:"rsvpSalvar", token, respostas:[ { id, status:"confirmado"|"recusado"|"pendente", obs:"" } ] }`
+→ `{ ok:true, grupo, pessoas:[{id,nome,status,obs}], deuPresente }`.
+Cada `id` precisa pertencer ao convite do token. Pode ser chamado de novo para
+alterar. Não há campo de quantidade.
 
 ## 4. `presentesListar` — catálogo público
 `GET ?action=presentesListar`

@@ -138,16 +138,17 @@ function exigirConvite(params) {
 var ABAS = {
   CONVIDADOS: {
     nome: 'Convidados',
+    // Lista NOMINAL: uma linha por PESSOA. Acompanhantes também são nomeados.
+    // Pessoas do mesmo convite compartilham o mesmo convite_id (uma pessoa
+    // confirma por todas do seu convite). Não existe "número de acompanhantes".
     colunas: [
-      'id',                 // id do convite (um convite pode ter várias pessoas)
-      'grupo',              // rótulo exibido, ex.: "Felipe & Mariana"
-      'nomes',              // nomes do convite separados por ';' (usados no match)
-      'max_acompanhantes',  // quantas pessoas esse convite pode confirmar
-      'rsvp_status',        // pendente | confirmado | recusado
-      'rsvp_qtd',           // quantos vão, de fato
-      'rsvp_obs',           // restrição alimentar / recado
-      'rsvp_atualizado_em', // timestamp ISO
-      'deu_presente'        // sim | (vazio) — para o aviso não agressivo
+      'id',                 // id único da pessoa (chave da linha)
+      'convite_id',         // agrupa pessoas do mesmo convite
+      'grupo',              // rótulo do convite, ex.: "Família Silva" (opcional)
+      'nome',               // nome completo da pessoa (usado no match e exibição)
+      'rsvp_status',        // pendente | confirmado | recusado (por pessoa)
+      'rsvp_obs',           // recado / restrição alimentar (por pessoa, opcional)
+      'rsvp_atualizado_em'  // timestamp ISO
     ]
   },
   PRESENTES: {
@@ -300,11 +301,12 @@ function setupPlanilha() {
     ]);
   }
 
-  // Convite-exemplo (PLACEHOLDER — a lista real de convidados entra depois).
+  // Convite-exemplo (PLACEHOLDER): um convite com DUAS pessoas nomeadas.
   var conv = lerTabela(ABAS.CONVIDADOS);
   if (conv.linhas.length === 0) {
-    conv.sheet.getRange(2, 1, 1, ABAS.CONVIDADOS.colunas.length).setValues([
-      ['c001', 'Convidado Exemplo', 'Fulano de Tal da Silva', 2, 'pendente', '', '', '', '']
+    conv.sheet.getRange(2, 1, 2, ABAS.CONVIDADOS.colunas.length).setValues([
+      ['p001', 'c001', 'Família Exemplo', 'Fulano de Tal da Silva', 'pendente', '', ''],
+      ['p002', 'c001', 'Família Exemplo', 'Beltrana Exemplo Souza', 'pendente', '', '']
     ]);
   }
 
@@ -314,10 +316,12 @@ function setupPlanilha() {
 // ===== Identidade.gs ==================================================
 
 /**
- * Identidade.gs — landing/gate por nome.
+ * Identidade.gs — landing/gate por nome (lista NOMINAL, uma linha por pessoa).
  *
  * Regra de match (spec §6.1): primeiro nome obrigatório + qualquer subconjunto
  * dos sobrenomes (em qualquer ordem), ignorando acentos e partículas.
+ * A pessoa é identificada; a sessão vale para o CONVITE dela (todas as pessoas
+ * nomeadas no mesmo convite_id).
  */
 
 var PARTICULAS = { 'de': 1, 'da': 1, 'do': 1, 'das': 1, 'dos': 1, 'e': 1, 'di': 1, 'du': 1 };
@@ -358,15 +362,6 @@ function nomeCasa(digitado, alvo) {
   return true;
 }
 
-/** Um convite casa se QUALQUER um dos seus nomes casa com o digitado. */
-function conviteCasa(digitado, campoNomes) {
-  var nomes = String(campoNomes || '').split(';');
-  for (var i = 0; i < nomes.length; i++) {
-    if (nomes[i].trim() && nomeCasa(digitado, nomes[i])) return true;
-  }
-  return false;
-}
-
 /** POST identificar */
 function acaoIdentificar(params) {
   var digitado = params && params.nome;
@@ -375,62 +370,82 @@ function acaoIdentificar(params) {
   }
 
   var t = lerTabela(ABAS.CONVIDADOS);
-  var candidatos = t.linhas.filter(function (c) {
-    return conviteCasa(digitado, c.nomes);
+  var convitesCasados = {};
+  t.linhas.forEach(function (p) {
+    if (nomeCasa(digitado, p.nome)) convitesCasados[p.convite_id] = true;
   });
+  var ids = Object.keys(convitesCasados);
 
-  if (candidatos.length === 0) return { ok: false, erro: 'nome_nao_encontrado' };
-  if (candidatos.length > 1) {
+  if (ids.length === 0) return { ok: false, erro: 'nome_nao_encontrado' };
+  if (ids.length > 1) {
     return { ok: true, resultado: 'multiplo', erro: 'precisa_desambiguar' };
   }
 
-  var c = candidatos[0];
-  return {
-    ok: true,
-    resultado: 'unico',
-    token: assinarToken(c.id),
-    grupo: c.grupo,
-    maxAcompanhantes: Number(c.max_acompanhantes) || 1,
-    rsvp: rsvpDoConvite(c),
-    deuPresente: String(c.deu_presente).toLowerCase() === 'sim'
-  };
+  var resp = conviteResposta(ids[0]);
+  resp.resultado = 'unico';
+  resp.token = assinarToken(ids[0]);
+  return resp;
 }
 
 /** POST sessao — revalida token salvo no dispositivo. */
 function acaoSessao(params) {
   var conviteId = verificarToken(params && params.token);
   if (!conviteId) return { ok: false, erro: 'token_invalido' };
-  var c = acharConvite(conviteId);
-  if (!c) return { ok: false, erro: 'token_invalido' };
+  var info = conviteInfo(conviteId);
+  if (!info) return { ok: false, erro: 'token_invalido' };
+  return conviteResposta(conviteId);
+}
+
+/** Monta a resposta pública de um convite (sem _linha). */
+function conviteResposta(conviteId) {
+  var info = conviteInfo(conviteId);
   return {
     ok: true,
-    grupo: c.grupo,
-    maxAcompanhantes: Number(c.max_acompanhantes) || 1,
-    rsvp: rsvpDoConvite(c),
-    deuPresente: String(c.deu_presente).toLowerCase() === 'sim'
+    grupo: info ? info.grupo : '',
+    pessoas: (info ? info.pessoas : []).map(function (p) {
+      return { id: p.id, nome: p.nome, status: p.status, obs: p.obs };
+    }),
+    deuPresente: conviteDeuPresente(conviteId)
   };
 }
 
-/** Busca uma linha de convite pelo id. */
-function acharConvite(conviteId) {
+/** Lê um convite: rótulo + pessoas (com _linha para escrita). */
+function conviteInfo(conviteId) {
   var t = lerTabela(ABAS.CONVIDADOS);
-  return t.linhas.filter(function (c) { return String(c.id) === String(conviteId); })[0] || null;
+  var pessoas = t.linhas.filter(function (p) {
+    return String(p.convite_id) === String(conviteId);
+  }).map(function (p) {
+    return {
+      id: p.id, nome: p.nome, grupo: p.grupo,
+      status: p.rsvp_status || 'pendente', obs: p.rsvp_obs || '', _linha: p._linha
+    };
+  });
+  if (pessoas.length === 0) return null;
+  return { conviteId: conviteId, grupo: pessoas[0].grupo || '', pessoas: pessoas };
 }
 
-/** Monta o objeto rsvp exposto ao frontend. */
-function rsvpDoConvite(c) {
-  return {
-    status: c.rsvp_status || 'pendente',
-    qtd: Number(c.rsvp_qtd) || 0,
-    obs: c.rsvp_obs || '',
-    atualizadoEm: c.rsvp_atualizado_em || ''
-  };
+/** Rótulo do convite (para registrar em Pagamentos). */
+function grupoDoConvite(conviteId) {
+  var info = conviteInfo(conviteId);
+  return info ? (info.grupo || conviteId) : conviteId;
+}
+
+/** O convite já deu presente? Derivado do livro-razão (pagamento confirmado). */
+function conviteDeuPresente(conviteId) {
+  var t = lerTabela(ABAS.PAGAMENTOS);
+  return t.linhas.some(function (pg) {
+    return String(pg.convite_id) === String(conviteId) && pg.status === 'confirmado';
+  });
 }
 
 // ===== Rsvp.gs ========================================================
 
 /**
- * Rsvp.gs — confirmar / recusar presença (por convite/grupo).
+ * Rsvp.gs — confirmar / recusar presença POR PESSOA (lista nominal).
+ *
+ * Recebe uma lista de respostas [{ id, status, obs? }], uma por pessoa do
+ * convite. Cada id precisa pertencer ao convite do token (não dá para editar
+ * pessoas de outro convite).
  */
 
 /** POST rsvpSalvar */
@@ -438,29 +453,34 @@ function acaoRsvpSalvar(params) {
   var conviteId = verificarToken(params && params.token);
   if (!conviteId) return { ok: false, erro: 'token_invalido' };
 
-  var status = String(params.status || '').toLowerCase();
-  if (status !== 'confirmado' && status !== 'recusado') {
-    return { ok: false, erro: 'dados_invalidos' };
-  }
+  var respostas = params.respostas;
+  if (!respostas || !respostas.length) return { ok: false, erro: 'dados_invalidos' };
 
-  var c = acharConvite(conviteId);
-  if (!c) return { ok: false, erro: 'token_invalido' };
+  var info = conviteInfo(conviteId);
+  if (!info) return { ok: false, erro: 'token_invalido' };
 
-  var maxAcomp = Number(c.max_acompanhantes) || 1;
-  var qtd = status === 'confirmado'
-    ? Math.max(1, Math.min(maxAcomp, Number(params.qtd) || 1))
-    : 0;
-  var obs = String(params.obs || '').slice(0, 500);
+  // Índice das pessoas deste convite, por id (barra edição cruzada).
+  var porId = {};
+  info.pessoas.forEach(function (p) { porId[String(p.id)] = p; });
+
   var agora = new Date().toISOString();
+  var atualizou = false;
 
-  atualizarLinha(ABAS.CONVIDADOS, c._linha, {
-    rsvp_status: status,
-    rsvp_qtd: qtd,
-    rsvp_obs: obs,
-    rsvp_atualizado_em: agora
+  respostas.forEach(function (r) {
+    var pessoa = porId[String(r && r.id)];
+    var status = String(r && r.status || '').toLowerCase();
+    if (!pessoa) return;
+    if (status !== 'confirmado' && status !== 'recusado' && status !== 'pendente') return;
+    atualizarLinha(ABAS.CONVIDADOS, pessoa._linha, {
+      rsvp_status: status,
+      rsvp_obs: String(r.obs || '').slice(0, 500),
+      rsvp_atualizado_em: agora
+    });
+    atualizou = true;
   });
 
-  return { ok: true, rsvp: { status: status, qtd: qtd, obs: obs, atualizadoEm: agora } };
+  if (!atualizou) return { ok: false, erro: 'dados_invalidos' };
+  return conviteResposta(conviteId);
 }
 
 // ===== Presentes.gs ===================================================
@@ -571,8 +591,7 @@ function acaoPagamentoStatus(params) {
 
 /** Cria a cobrança no MP + registra pagamento pendente. Reverte item se falhar. */
 function gerarCobranca(conviteId, dados) {
-  var c = acharConvite(conviteId);
-  var grupo = c ? c.grupo : conviteId;
+  var grupo = grupoDoConvite(conviteId);
   var descricao = (configValor('MP_DESCRICAO_PREFIXO', 'Presente de casamento')) +
     ' - ' + dados.titulo;
 
@@ -769,7 +788,7 @@ function sincronizarPagamento(paymentId) {
   }
 }
 
-/** Efetiva um pagamento confirmado: esgota o item e marca deu_presente. */
+/** Efetiva um pagamento confirmado: marca o pagamento e esgota o item. */
 function confirmarPagamento(pg) {
   atualizarLinha(ABAS.PAGAMENTOS, pg._linha, {
     status: 'confirmado',
@@ -789,9 +808,8 @@ function confirmarPagamento(pg) {
       });
     }
   }
-
-  var c = acharConvite(pg.convite_id);
-  if (c) atualizarLinha(ABAS.CONVIDADOS, c._linha, { deu_presente: 'sim' });
+  // "deuPresente" é derivado do livro-razão (status confirmado); nada a gravar
+  // na aba Convidados (que agora é uma linha por pessoa).
 }
 
 /** Devolve um item ao catálogo (reserva não paga). */

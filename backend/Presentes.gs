@@ -104,8 +104,7 @@ function acaoPagamentoStatus(params) {
 
 /** Cria a cobrança no MP + registra pagamento pendente. Reverte item se falhar. */
 function gerarCobranca(conviteId, dados) {
-  var c = acharConvite(conviteId);
-  var grupo = c ? c.grupo : conviteId;
+  var grupo = grupoDoConvite(conviteId);
   var descricao = (configValor('MP_DESCRICAO_PREFIXO', 'Presente de casamento')) +
     ' - ' + dados.titulo;
 

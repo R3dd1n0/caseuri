@@ -110,7 +110,7 @@ function sincronizarPagamento(paymentId) {
   }
 }
 
-/** Efetiva um pagamento confirmado: esgota o item e marca deu_presente. */
+/** Efetiva um pagamento confirmado: marca o pagamento e esgota o item. */
 function confirmarPagamento(pg) {
   atualizarLinha(ABAS.PAGAMENTOS, pg._linha, {
     status: 'confirmado',
@@ -130,9 +130,8 @@ function confirmarPagamento(pg) {
       });
     }
   }
-
-  var c = acharConvite(pg.convite_id);
-  if (c) atualizarLinha(ABAS.CONVIDADOS, c._linha, { deu_presente: 'sim' });
+  // "deuPresente" é derivado do livro-razão (status confirmado); nada a gravar
+  // na aba Convidados (que agora é uma linha por pessoa).
 }
 
 /** Devolve um item ao catálogo (reserva não paga). */

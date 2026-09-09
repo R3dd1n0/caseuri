@@ -111,6 +111,16 @@ section.secao {
 .contagem .num { font-size: 2rem; font-family: var(--fonte-titulo); }
 .contagem .rot { font-size: 0.75rem; color: var(--cor-suave); text-transform: uppercase; }
 
+/* ---- RSVP por pessoa ---- */
+.pessoa-rsvp {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+.rsvp-opcoes { display: flex; gap: 1.2rem; }
+.rsvp-opcoes label { display: inline-flex; align-items: center; gap: 0.3rem; margin: 0; color: var(--cor-texto); }
+
 /* ---- Presentes ---- */
 .grade-presentes { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
 @media (min-width: 560px) { .grade-presentes { grid-template-columns: 1fr 1fr; } }

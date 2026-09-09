@@ -100,18 +100,22 @@ o resto. Supabase/Vercel só se o projeto virasse algo muito maior.
 
 ## 5. Modelo de dados (abas da planilha)
 
-**Aba `Convidados`** (você pré-carrega antes de publicar):
+**Aba `Convidados`** — lista **NOMINAL**, uma linha por PESSOA (você pré-carrega
+antes de publicar). Acompanhantes também são nomeados; **não** há "número de
+acompanhantes" — quem não foi nomeado não é esperado.
 
 | coluna | descrição |
 |--------|-----------|
-| id | identificador do convite/grupo |
-| nome_busca | nome(s) que o convidado pode digitar (normalizado p/ match) |
-| grupo | rótulo do convite (ex.: "Felipe & Fulana") |
-| max_acompanhantes | quantas pessoas esse convite pode confirmar |
-| rsvp_status | pendente / confirmado / recusado |
-| rsvp_qtd | quantos vão, de fato |
-| rsvp_obs | restrição alimentar / recado |
-| deu_presente | sim / não (para o aviso não agressivo) |
+| id | identificador único da pessoa (chave da linha) |
+| convite_id | agrupa pessoas do mesmo convite (uma confirma pelas outras) |
+| grupo | rótulo do convite (ex.: "Família Silva"), opcional |
+| nome | nome completo da pessoa (usado no match e na exibição) |
+| rsvp_status | pendente / confirmado / recusado (por pessoa) |
+| rsvp_obs | restrição alimentar / recado (por pessoa), opcional |
+| rsvp_atualizado_em | timestamp ISO |
+
+> "Já deu presente?" não é uma coluna: é **derivado** do livro-razão
+> `Pagamentos` (algum pagamento `confirmado` para aquele `convite_id`).
 
 **Aba `Presentes`**:
 
@@ -165,13 +169,14 @@ de dois "Felipe" ou famílias com o mesmo sobrenome.
 **Privacidade:** a lista de nomes reais mora só na planilha/backend. **Nunca**
 vai para o repositório do GitHub (público) nem para o JS do site.
 
-## 7. Fluxo de RSVP
+## 7. Fluxo de RSVP (nominal, por pessoa)
 
-1. Já identificado, o convidado vê seu grupo ("Felipe & Fulana — até 2 pessoas").
-2. Escolhe **confirmar** ou **recusar**; se confirmar, informa quantos vão e um
-   recado/restrição opcional.
-3. POST para o Apps Script → grava em `Convidados`. Pode alterar depois
-   (reabre e muda a resposta).
+1. Já identificado, o convidado vê **as pessoas nomeadas do seu convite** (ele
+   mesmo e eventuais acompanhantes que foram convidados por nome).
+2. Para **cada pessoa**, marca **Vou** / **Não vou** (e um recado/restrição
+   opcional). Não há campo de quantidade — quem não está na lista não vai.
+3. POST para o Apps Script → grava o status de cada pessoa em `Convidados`.
+   Qualquer pessoa do convite pode reabrir e alterar as respostas.
 
 ## 8. Fluxo de presentes (com webhook)
 
