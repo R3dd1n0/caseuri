@@ -17,41 +17,42 @@ window.CONTEUDO = {
   },
 
   evento: {
-    // Data/hora em ISO (usada na contagem regressiva). PROVISÓRIO: 12/11/2026.
+    // Data/hora em ISO usada na contagem regressiva.
     dataISO: '2026-11-12T00:00:00-03:00',
     dataTexto: '12 de novembro de 2026',
-    horario: 'Horário a definir',
-    local: 'Local a definir',
-    endereco: 'Endereço a definir',
-    mapsUrl: '#',   // link "abrir no Google Maps"
-    wazeUrl: '#'    // link "abrir no Waze"
+    horario: 'A festa vai até às 18h',
+    local: 'Flores Arte Bistrô',
+    endereco: 'Rua Xavier de Castro, 68, Praia de Iracema, Fortaleza',
+    mapsUrl: 'https://maps.app.goo.gl/duwmXrSrzr9BmJmE9',
+    wazeUrl: 'https://waze.com/ul?ll=-3.7214135,-38.5125623&navigate=yes'
   },
 
   // Cada seção tem título + corpo. Textos provisórios.
+  // Seções com corpo vazio ('') ficam ocultas até vocês preencherem.
   secoes: {
     historia: {
       titulo: 'Nossa história',
-      corpo: 'Texto da história do casal entra aqui.'
+      corpo: ''
     },
     quandoOnde: {
       titulo: 'Quando & onde',
-      corpo: 'Detalhes de data, horário e cronograma entram aqui.'
+      corpo: 'Reserve a data e venha comemorar com a gente.'
     },
     comoChegar: {
       titulo: 'Como chegar',
-      corpo: 'Instruções de trajeto e estacionamento entram aqui.'
+      corpo: 'As vagas de estacionamento na rua são poucas, então vale ir de aplicativo ou combinar uma carona.'
     },
     dressCode: {
       titulo: 'Dress code',
-      corpo: 'Descrição do traje entra aqui.'
+      corpo: 'Esporte fino, na cor preta.'
     },
     informacoes: {
       titulo: 'Informações',
-      corpo: 'Recados gerais entram aqui.'
+      corpo: ''
     },
     recados: {
       titulo: 'Recados',
-      corpo: 'Contato dos noivos e observações finais entram aqui.'
+      corpo: ''
     }
   },
 

@@ -99,10 +99,25 @@
     mostrar($('#gate'), false);
     $('#hub').classList.add('visivel');
     hydrateLinks();
+    ocultarSecoesVazias();
     iniciarContagem();
     montarRsvp();
     carregarPresentes();
     atualizarLembrete();
+  }
+
+  // Oculta seções opcionais cujo corpo está vazio no conteudo.js.
+  function ocultarSecoesVazias() {
+    var opcionais = {
+      historia: 'secoes.historia.corpo',
+      info: 'secoes.informacoes.corpo',
+      recados: 'secoes.recados.corpo'
+    };
+    Object.keys(opcionais).forEach(function (id) {
+      var sec = $('#' + id);
+      var val = caminho(C, opcionais[id]);
+      if (sec) sec.hidden = !val || String(val).trim() === '';
+    });
   }
 
   // ---- links de trajeto (href vem do conteúdo) ----
