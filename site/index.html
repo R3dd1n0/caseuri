@@ -51,6 +51,7 @@
       <a href="#dress" data-bind="secoes.dressCode.titulo">·</a>
       <a href="#rsvp" data-bind="rsvp.titulo">·</a>
       <a href="#presentes" data-bind="presentes.titulo">·</a>
+      <a href="#" id="sair" class="nav-sair">Sair</a>
     </nav>
 
     <header id="capa" class="capa container">
@@ -69,7 +70,8 @@
       <section id="quando" class="secao">
         <h2 data-bind="secoes.quandoOnde.titulo">·</h2>
         <p data-bind="secoes.quandoOnde.corpo">·</p>
-        <p><strong data-bind="evento.dataTexto">·</strong> — <span data-bind="evento.horario">·</span></p>
+        <p><strong data-bind="evento.dataTexto">·</strong></p>
+        <p data-bind="evento.horario">·</p>
         <p data-bind="evento.local">·</p>
       </section>
 
@@ -109,6 +111,7 @@
       <!-- ---- Presentes ---- -->
       <section id="presentes" class="secao">
         <h2 data-bind="presentes.titulo">·</h2>
+        <p id="presentes-obrigado" class="msg msg--ok" hidden></p>
         <p data-bind="presentes.intro">·</p>
         <div id="presentes-lista" class="grade-presentes"></div>
         <div id="presentes-msg" class="msg"></div>

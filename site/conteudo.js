@@ -47,7 +47,7 @@ window.CONTEUDO = {
     },
     informacoes: {
       titulo: 'Informações',
-      corpo: 'Recados gerais (crianças, presentes, etc.) entram aqui.'
+      corpo: 'Recados gerais entram aqui.'
     },
     recados: {
       titulo: 'Recados',
@@ -63,9 +63,11 @@ window.CONTEUDO = {
 
   presentes: {
     titulo: 'Lista de presentes',
-    intro: 'Escolha um presente ou contribua com o valor que quiser (via PIX).',
+    intro: 'Escolha um presente ou contribua com o valor que quiser via Pix.',
     // rótulo do card de contribuição livre (item tipo "livre" no catálogo)
-    livreChamada: 'Contribuir com um valor livre'
+    livreChamada: 'Contribuir com um valor',
+    // mostrado depois que o convite já presenteou (nome do grupo entra na frente)
+    obrigado: 'já recebemos seu presente, muito obrigado 💛 se quiser presentear de novo, fique à vontade.'
   },
 
   // Textos da landing (gate por nome)

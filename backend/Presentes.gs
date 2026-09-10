@@ -31,10 +31,11 @@ function acaoPresenteReservar(params) {
 
   var presenteId = params.presenteId;
   var lock = LockService.getScriptLock();
-  lock.waitLock(15000);
+  if (!lock.tryLock(8000)) return { ok: false, erro: 'ocupado' };
   var presente;
   try {
-    liberarReservasExpiradas();
+    // Nota: a limpeza de reservas expiradas fica FORA do lock (roda em
+    // presentesListar e na trigger de 5 min), pra manter este trecho curto.
     presente = acharPresente(presenteId);
     if (!presente) return { ok: false, erro: 'dados_invalidos' };
 

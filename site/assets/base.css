@@ -102,6 +102,7 @@ label { display: block; margin-bottom: 0.35rem; color: var(--cor-suave); }
   overflow-x: auto;
 }
 .nav a { text-decoration: none; color: var(--cor-suave); white-space: nowrap; font-size: 0.9rem; }
+.nav-sair { margin-left: auto; color: var(--cor-primaria) !important; font-weight: 500; }
 
 section.secao {
   padding: 2.5rem 0;

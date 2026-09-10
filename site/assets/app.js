@@ -145,8 +145,10 @@
 
     estado.pessoas.forEach(function (p) {
       var bloco = el('div', { class: 'pessoa-rsvp' });
-      var ehCrianca = String(p.categoria || '').indexOf('crianca') === 0;
-      bloco.appendChild(el('strong', { text: p.nome + (ehCrianca ? ' (criança)' : '') }));
+      bloco.appendChild(el('strong', { text: p.nome }));
+      if (String(p.categoria || '').indexOf('crianca') === 0) {
+        bloco.appendChild(el('span', { class: 'selo', text: 'criança' }));
+      }
       var opcoes = el('div', { class: 'rsvp-opcoes' });
       [['confirmado', 'Vou'], ['recusado', 'Não vou']].forEach(function (par) {
         var lbl = el('label');
@@ -201,6 +203,13 @@
   // ---- presentes ----
   function carregarPresentes() {
     var lista = $('#presentes-lista');
+    var obrig = $('#presentes-obrigado');
+    if (obrig) {
+      if (estado.deuPresente) {
+        obrig.textContent = (estado.grupo ? estado.grupo + ', ' : '') + C.presentes.obrigado;
+      }
+      mostrar(obrig, estado.deuPresente);
+    }
     lista.innerHTML = 'Carregando…';
     window.API.presentesListar().then(function (r) {
       lista.innerHTML = '';
@@ -219,21 +228,28 @@
     if (p.valor != null) filhos.push(el('span', { class: 'selo', text: 'R$ ' + p.valor }));
 
     if (p.tipo === 'livre') {
-      var inpV = el('input', { class: 'campo', type: 'number', min: '1', placeholder: 'Valor (R$)' });
+      var inpV = el('input', { class: 'campo', type: 'number', min: '1', placeholder: 'Valor em reais' });
       var btnV = el('button', { class: 'botao', text: C.presentes.livreChamada });
       btnV.addEventListener('click', function () {
         var v = Number(inpV.value);
-        if (!v || v <= 0) return;
-        iniciarPix(window.API.contribuirLivre(estado.token, v, '', p.id));
+        if (!v || v <= 0) { inpV.focus(); return; }
+        var rotulo = btnV.textContent;
+        btnV.disabled = true; btnV.textContent = 'Gerando Pix…';
+        iniciarPix(window.API.contribuirLivre(estado.token, v, '', p.id), function () {
+          btnV.disabled = false; btnV.textContent = rotulo;
+        });
       });
       filhos.push(inpV, btnV);
     } else if (esgotado) {
       filhos.push(el('span', { class: 'selo', text: '✓ Já presenteado' }));
     } else {
-      var btn = el('button', { class: 'botao', text: reservado ? 'Reservado…' : 'Quero dar' });
+      var btn = el('button', { class: 'botao', text: reservado ? 'Reservado' : 'Quero dar' });
       if (reservado) btn.disabled = true;
       btn.addEventListener('click', function () {
-        iniciarPix(window.API.presenteReservar(estado.token, p.id, ''));
+        btn.disabled = true; btn.textContent = 'Gerando Pix…';
+        iniciarPix(window.API.presenteReservar(estado.token, p.id, ''), function () {
+          btn.disabled = false; btn.textContent = 'Quero dar';
+        });
       });
       filhos.push(btn);
     }
@@ -241,23 +257,31 @@
   }
 
   // ---- fluxo PIX (modal + polling) ----
-  function iniciarPix(promessa) {
+  function iniciarPix(promessa, onFail) {
     var modal = $('#pix-modal');
     var conteudo = $('#pix-conteudo');
-    conteudo.innerHTML = 'Gerando cobrança PIX…';
+    conteudo.innerHTML = '';
+    conteudo.appendChild(el('p', { class: 'lembrete', text: 'Gerando seu Pix, um instante…' }));
     mostrar(modal, true);
 
     promessa.then(function (r) {
       if (!r || !r.ok) {
+        var m = r && r.erro === 'presente_indisponivel'
+              ? 'Esse presente acabou de ser escolhido por outra pessoa.'
+              : r && r.erro === 'ocupado'
+              ? 'Estamos gerando outro Pix neste instante. Feche e tente de novo em alguns segundos.'
+              : 'Não conseguimos gerar o Pix agora. Feche e tente de novo.';
         conteudo.innerHTML = '';
-        conteudo.appendChild(el('p', { class: 'msg msg--erro',
-          text: r && r.erro === 'presente_indisponivel' ? 'Esse presente acabou de ser escolhido por outra pessoa.' : 'Não foi possível gerar o PIX.' }));
+        conteudo.appendChild(el('p', { class: 'msg msg--erro', text: m }));
+        if (onFail) onFail();
         return;
       }
       renderPix(conteudo, r.pagamento);
       pollPagamento(r.pagamento.paymentId, conteudo);
     }).catch(function () {
-      conteudo.innerHTML = '<p class="msg msg--erro">Erro de conexão.</p>';
+      conteudo.innerHTML = '';
+      conteudo.appendChild(el('p', { class: 'msg msg--erro', text: 'Erro de conexão. Feche e tente de novo.' }));
+      if (onFail) onFail();
     });
   }
 
@@ -265,11 +289,11 @@
     conteudo.innerHTML = '';
     var area = el('div', { class: 'pix-area' });
     if (pg.qrCodeBase64) {
-      area.appendChild(el('img', { alt: 'QR Code PIX', src: 'data:image/png;base64,' + pg.qrCodeBase64 }));
+      area.appendChild(el('img', { alt: 'QR Code Pix', src: 'data:image/png;base64,' + pg.qrCodeBase64 }));
     }
     area.appendChild(el('div', { text: 'Valor: R$ ' + pg.valor }));
     var copia = el('div', { class: 'copia-cola', text: pg.copiaCola || '' });
-    var btnCopiar = el('button', { class: 'botao botao--secundario', text: 'Copiar código PIX' });
+    var btnCopiar = el('button', { class: 'botao botao--secundario', text: 'Copiar código Pix' });
     btnCopiar.addEventListener('click', function () {
       if (navigator.clipboard) navigator.clipboard.writeText(pg.copiaCola || '');
       btnCopiar.textContent = 'Copiado!';
@@ -291,7 +315,10 @@
         var linha = $('#pix-status', conteudo);
         if (r.status === 'confirmado') {
           clearInterval(timer);
-          if (linha) { linha.textContent = 'Pagamento confirmado! Muito obrigado 💛'; linha.className = 'msg msg--ok'; }
+          if (linha) {
+            linha.textContent = (estado.grupo ? 'Obrigado, ' + estado.grupo + '! ' : 'Muito obrigado! ') + 'Pagamento confirmado 💛';
+            linha.className = 'msg msg--ok';
+          }
           estado.deuPresente = true;
           atualizarLembrete();
           carregarPresentes();
@@ -304,12 +331,18 @@
     }, 4000);
   }
 
-  // fechar modal PIX
+  // fechar modal PIX + sair (logout)
   document.addEventListener('DOMContentLoaded', function () {
     var fechar = $('#pix-fechar');
     if (fechar) fechar.addEventListener('click', function () {
       mostrar($('#pix-modal'), false);
       carregarPresentes();
+    });
+    var sair = $('#sair');
+    if (sair) sair.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.Sessao.limpar();
+      location.reload();
     });
   });
 })();
