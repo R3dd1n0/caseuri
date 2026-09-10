@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // Ordem não importa para o Apps Script (funções são içadas), mas fica legível.
-const ordem = ['Codigo', 'Planilha', 'Identidade', 'Rsvp', 'Presentes', 'MercadoPago'];
+const ordem = ['Codigo', 'Planilha', 'Identidade', 'Rsvp', 'Presentes', 'MercadoPago', 'Conteudo'];
 
 const cabecalho =
 `/**

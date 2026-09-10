@@ -17,10 +17,10 @@ window.CONTEUDO = {
   },
 
   evento: {
-    // Data/hora em ISO usada na contagem regressiva.
-    dataISO: '2026-11-12T00:00:00-03:00',
+    // Data/hora em ISO usada na contagem regressiva (18h de 12/11/2026).
+    dataISO: '2026-11-12T18:00:00-03:00',
     dataTexto: '12 de novembro de 2026',
-    horario: 'A festa vai até às 18h',
+    horario: 'A festa começa às 18h',
     local: 'Flores Arte Bistrô',
     endereco: 'Rua Xavier de Castro, 68, Praia de Iracema, Fortaleza',
     mapsUrl: 'https://maps.app.goo.gl/duwmXrSrzr9BmJmE9',
