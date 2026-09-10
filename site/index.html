@@ -44,16 +44,6 @@
 
   <!-- ============ HUB (conteúdo do site) ============ -->
   <div id="hub">
-    <nav class="nav container">
-      <a href="#capa" data-bind="casal.titulo">·</a>
-      <a href="#quando" data-bind="secoes.quandoOnde.titulo">·</a>
-      <a href="#chegar" data-bind="secoes.comoChegar.titulo">·</a>
-      <a href="#dress" data-bind="secoes.dressCode.titulo">·</a>
-      <a href="#rsvp" data-bind="rsvp.titulo">·</a>
-      <a href="#presentes" data-bind="presentes.titulo">·</a>
-      <a href="#" id="sair" class="nav-sair">Sair</a>
-    </nav>
-
     <header id="capa" class="capa container">
       <img class="monograma" src="assets/monograma.svg" alt="Monograma M F">
       <p data-bind="evento.dataTexto">·</p>
@@ -62,66 +52,85 @@
     </header>
 
     <main class="container">
-      <section id="historia" class="secao">
-        <h2 data-bind="secoes.historia.titulo">·</h2>
-        <p data-bind="secoes.historia.corpo">·</p>
-      </section>
+      <details id="historia" class="secao">
+        <summary><span class="secao-titulo" data-bind="secoes.historia.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p data-bind="secoes.historia.corpo">·</p>
+        </div>
+      </details>
 
-      <section id="quando" class="secao">
-        <h2 data-bind="secoes.quandoOnde.titulo">·</h2>
-        <p data-bind="secoes.quandoOnde.corpo">·</p>
-        <p><strong data-bind="evento.dataTexto">·</strong></p>
-        <p data-bind="evento.horario">·</p>
-        <p data-bind="evento.local">·</p>
-      </section>
+      <details id="quando" class="secao" open>
+        <summary><span class="secao-titulo" data-bind="secoes.quandoOnde.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p data-bind="secoes.quandoOnde.corpo">·</p>
+          <p><strong data-bind="evento.dataTexto">·</strong></p>
+          <p data-bind="evento.horario">·</p>
+          <p data-bind="evento.local">·</p>
+        </div>
+      </details>
 
-      <section id="chegar" class="secao">
-        <h2 data-bind="secoes.comoChegar.titulo">·</h2>
-        <p data-bind="secoes.comoChegar.corpo">·</p>
-        <p data-bind="evento.endereco">·</p>
-        <p>
-          <a id="link-maps" class="botao botao--secundario" target="_blank" rel="noopener">Google Maps</a>
-          <a id="link-waze" class="botao botao--secundario" target="_blank" rel="noopener">Waze</a>
-        </p>
-      </section>
+      <details id="chegar" class="secao">
+        <summary><span class="secao-titulo" data-bind="secoes.comoChegar.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p data-bind="secoes.comoChegar.corpo">·</p>
+          <p data-bind="evento.endereco">·</p>
+          <p class="acoes">
+            <a id="link-maps" class="botao botao--secundario" target="_blank" rel="noopener">Google Maps</a>
+            <a id="link-waze" class="botao botao--secundario" target="_blank" rel="noopener">Waze</a>
+          </p>
+        </div>
+      </details>
 
-      <section id="dress" class="secao">
-        <h2 data-bind="secoes.dressCode.titulo">·</h2>
-        <p data-bind="secoes.dressCode.corpo">·</p>
-      </section>
+      <details id="dress" class="secao">
+        <summary><span class="secao-titulo" data-bind="secoes.dressCode.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p data-bind="secoes.dressCode.corpo">·</p>
+        </div>
+      </details>
 
-      <section id="info" class="secao">
-        <h2 data-bind="secoes.informacoes.titulo">·</h2>
-        <p data-bind="secoes.informacoes.corpo">·</p>
-      </section>
+      <details id="info" class="secao">
+        <summary><span class="secao-titulo" data-bind="secoes.informacoes.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p data-bind="secoes.informacoes.corpo">·</p>
+        </div>
+      </details>
 
       <!-- ---- RSVP ---- -->
-      <section id="rsvp" class="secao">
-        <h2 data-bind="rsvp.titulo">·</h2>
-        <p>Convite: <strong id="rsvp-grupo">·</strong></p>
-        <form id="rsvp-form">
-          <!-- uma pessoa por linha (lista nominal) — renderizado pelo app.js -->
-          <div id="rsvp-pessoas"></div>
-          <button class="botao" type="submit">Salvar resposta</button>
-          <div id="rsvp-msg" class="msg"></div>
-        </form>
-        <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
-      </section>
+      <details id="rsvp" class="secao">
+        <summary><span class="secao-titulo" data-bind="rsvp.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p>Convite: <strong id="rsvp-grupo">·</strong></p>
+          <form id="rsvp-form">
+            <div id="rsvp-pessoas"></div>
+            <button class="botao" type="submit">Salvar resposta</button>
+            <div id="rsvp-msg" class="msg"></div>
+          </form>
+          <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
+        </div>
+      </details>
 
       <!-- ---- Presentes ---- -->
-      <section id="presentes" class="secao">
-        <h2 data-bind="presentes.titulo">·</h2>
-        <p id="presentes-obrigado" class="msg msg--ok" hidden></p>
-        <p data-bind="presentes.intro">·</p>
-        <div id="presentes-lista" class="grade-presentes"></div>
-        <div id="presentes-msg" class="msg"></div>
-      </section>
+      <details id="presentes" class="secao">
+        <summary><span class="secao-titulo" data-bind="presentes.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p id="presentes-obrigado" class="msg msg--ok" hidden></p>
+          <p data-bind="presentes.intro">·</p>
+          <div id="presentes-lista" class="grade-presentes"></div>
+          <div id="presentes-msg" class="msg"></div>
+        </div>
+      </details>
 
-      <section id="recados" class="secao">
-        <h2 data-bind="secoes.recados.titulo">·</h2>
-        <p data-bind="secoes.recados.corpo">·</p>
-      </section>
+      <details id="recados" class="secao">
+        <summary><span class="secao-titulo" data-bind="secoes.recados.titulo">·</span></summary>
+        <div class="secao-corpo">
+          <p data-bind="secoes.recados.corpo">·</p>
+        </div>
+      </details>
     </main>
+
+    <footer class="rodape container">
+      <a href="#" id="sair">Sair</a>
+    </footer>
   </div>
 
   <!-- ============ Modal PIX ============ -->

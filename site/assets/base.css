@@ -93,22 +93,37 @@ label { display: block; margin-bottom: 0.35rem; color: var(--cor-suave); }
 #hub { display: none; }
 #hub.visivel { display: block; }
 
-.nav {
-  position: sticky; top: 0;
-  display: flex; gap: 0.5rem; flex-wrap: wrap;
-  padding: 0.6rem 1rem;
-  background: var(--cor-fundo);
-  border-bottom: 1px solid var(--cor-borda);
-  overflow-x: auto;
+/* ---- Acordeão de seções (details/summary) ---- */
+.secao { border-bottom: 1px solid var(--cor-borda); }
+.secao > summary {
+  list-style: none;               /* esconde o triângulo padrão */
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  font-family: var(--fonte-titulo);
+  font-size: 1.5rem; font-weight: 600;
+  color: var(--cor-primaria);
 }
-.nav a { text-decoration: none; color: var(--cor-suave); white-space: nowrap; font-size: 0.9rem; }
-.nav-sair { margin-left: auto; color: var(--cor-primaria) !important; font-weight: 500; }
+.secao > summary::-webkit-details-marker { display: none; }
+.secao > summary::after {            /* chevron desenhado por borda */
+  content: ""; flex: none;
+  width: 0.5rem; height: 0.5rem;
+  border-right: 2px solid var(--cor-suave);
+  border-bottom: 2px solid var(--cor-suave);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+.secao[open] > summary::after { transform: rotate(-135deg); }
+.secao-corpo { padding: 0 0 1.6rem; }
+.secao-titulo { line-height: 1.2; }
+.acoes { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.acoes .botao { flex: 1 1 auto; text-align: center; }
 
-section.secao {
-  padding: 2.5rem 0;
-  border-bottom: 1px solid var(--cor-borda);
-}
-.capa { text-align: center; padding: 4rem 0 3rem; }
+.rodape { text-align: center; padding: 2rem 0 3rem; }
+.rodape a { color: var(--cor-suave); text-decoration: none; font-size: 0.9rem; }
+
+.capa { text-align: center; padding: 3.5rem 0 2.5rem; }
 .capa h1 { font-size: clamp(2.6rem, 10vw, 4.5rem); margin: 0.3rem 0; font-weight: 600; }
 .capa > p { color: var(--cor-suave); text-transform: uppercase; letter-spacing: .22em; font-size: .8rem; margin: 0; }
 
