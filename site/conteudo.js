@@ -32,7 +32,7 @@ window.CONTEUDO = {
   secoes: {
     historia: {
       titulo: 'Nossa história',
-      corpo: 'A gente se conheceu num pré-carnaval na Gentilândia, em 2018, e eu nunca mais soltei a mão dela. De lá pra cá foi casa nova, um cachorro, depois outro, e uma vida inteira acontecendo rápido demais. A pandemia deu aquele empurrãozinho pra gente casar, mas a verdade é que eu já tinha comprado um jogo de pratos bem antes, então a vontade sempre foi minha. Muita coisa mudou nesses anos. A gente não. E agora a gente quer dividir isso com você.'
+      corpo: 'A gente se conheceu num pré-carnaval na Gentilândia, em 2018, e desde então não largou mais a mão um do outro. De lá pra cá foi casa nova, um cachorro, depois outro, e uma vida inteira acontecendo rápido demais. A pandemia deu aquele empurrãozinho pra gente casar, mas a verdade é que o Felipe já tinha comprado um jogo de pratos bem antes, então a vontade já era antiga. Muita coisa mudou nesses anos. A gente não. E agora a gente quer dividir isso com você.'
     },
     quandoOnde: {
       titulo: 'Quando & onde',
