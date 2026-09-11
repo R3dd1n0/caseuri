@@ -52,7 +52,7 @@ window.CONTEUDO = {
     },
     recados: {
       titulo: 'Recados',
-      corpo: ''
+      corpo: 'Mais que qualquer presente, a gente quer você lá. Até 12 de novembro 💛'
     }
   },
 

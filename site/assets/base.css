@@ -120,6 +120,15 @@ label { display: block; margin-bottom: 0.35rem; color: var(--cor-suave); }
 .acoes { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 .acoes .botao { flex: 1 1 auto; text-align: center; }
 
+/* ---- Galeria de fotos (dentro de "Nossa história") ---- */
+.galeria { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 1.4rem; }
+.galeria img {
+  width: 100%; height: 100%;
+  aspect-ratio: 3 / 4; object-fit: cover;
+  border-radius: var(--raio);
+  border: 1px solid var(--cor-borda);
+}
+
 .rodape { text-align: center; padding: 2rem 0 3rem; }
 .rodape a { color: var(--cor-suave); text-decoration: none; font-size: 0.9rem; }
 
