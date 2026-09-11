@@ -32,7 +32,7 @@ window.CONTEUDO = {
   secoes: {
     historia: {
       titulo: 'Nossa história',
-      corpo: 'A gente se conheceu num pré-carnaval na Praça da Gentilândia, em Fortaleza, e desde aquele dia não se largou mais. De lá pra cá foi uma vida inteira em pouco tempo: mudamos de casa, ganhamos e perdemos peso, ganhamos e perdemos amigos, trocamos de emprego, viajamos e crescemos juntos. Somos nós dois e dois cachorros, atravessando os altos e baixos de sempre. Eu gosto de dizer que o COVID nos casou, mas a verdade é que ele só deu um empurrãozinho em algo que a gente já queria. A prova é que, antes de qualquer vírus, eu já tinha comprado um jogo de pratos. No meio de tanta coisa que muda, a nossa constante sempre foi um ao outro. E agora a gente quer celebrar isso com você.'
+      corpo: 'A gente se conheceu num pré-carnaval na Gentilândia, em 2018, e eu nunca mais soltei a mão dela. De lá pra cá foi casa nova, um cachorro, depois outro, e uma vida inteira acontecendo rápido demais. A pandemia deu aquele empurrãozinho pra gente casar, mas a verdade é que eu já tinha comprado um jogo de pratos bem antes, então a vontade sempre foi minha. Muita coisa mudou nesses anos. A gente não. E agora a gente quer dividir isso com você.'
     },
     quandoOnde: {
       titulo: 'Quando & onde',
