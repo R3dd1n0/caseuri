@@ -14,3 +14,7 @@ segredos*
 Thumbs.db
 node_modules/
 *.log
+
+# Bordado dos marcadores de taça: nomes reais e arquivos gerados ficam fora
+bordado/convidados*.txt
+bordado/saida*/
