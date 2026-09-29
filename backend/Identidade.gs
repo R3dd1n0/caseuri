@@ -9,6 +9,13 @@
 
 var PARTICULAS = { 'de': 1, 'da': 1, 'do': 1, 'das': 1, 'dos': 1, 'e': 1, 'di': 1, 'du': 1 };
 
+/** Interpreta marcas de "verdadeiro" na planilha: caixa marcada, x, sim, 1... */
+function ehVerdadeiro(v) {
+  if (v === true) return true;
+  var s = String(v == null ? '' : v).trim().toLowerCase();
+  return s === 'true' || s === '1' || s === 'x' || s === 'sim' || s === 's' || s === 'yes';
+}
+
 /** minúsculas, sem acento, sem pontuação, espaços colapsados. */
 function normalizarTexto(s) {
   return String(s || '')
@@ -90,23 +97,30 @@ function conviteResposta(conviteId) {
     pessoas: (info ? info.pessoas : []).map(function (p) {
       return { id: p.id, nome: p.nome, categoria: p.categoria, status: p.status, obs: p.obs };
     }),
-    deuPresente: conviteDeuPresente(conviteId)
+    deuPresente: conviteDeuPresente(conviteId),
+    // Convites de colegas de trabalho não veem a lista de presentes.
+    ocultarPresentes: info ? info.ocultarPresentes : false
   };
 }
 
 /** Lê um convite: rótulo + pessoas (com _linha para escrita). */
 function conviteInfo(conviteId) {
   var t = lerTabela(ABAS.CONVIDADOS);
+  var ocultarPresentes = false;
   var pessoas = t.linhas.filter(function (p) {
     return String(p.convite_id) === String(conviteId);
   }).map(function (p) {
+    if (ehVerdadeiro(p.ocultar_presentes)) ocultarPresentes = true;
     return {
       id: p.id, nome: p.nome, grupo: p.grupo, categoria: p.categoria || 'adulto',
       status: p.rsvp_status || 'pendente', obs: p.rsvp_obs || '', _linha: p._linha
     };
   });
   if (pessoas.length === 0) return null;
-  return { conviteId: conviteId, grupo: pessoas[0].grupo || '', pessoas: pessoas };
+  return {
+    conviteId: conviteId, grupo: pessoas[0].grupo || '',
+    pessoas: pessoas, ocultarPresentes: ocultarPresentes
+  };
 }
 
 /** Rótulo do convite (para registrar em Pagamentos). */

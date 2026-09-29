@@ -6,7 +6,7 @@
  */
 (function () {
   var C = window.CONTEUDO;
-  var estado = { token: null, grupo: '', pessoas: [], deuPresente: false };
+  var estado = { token: null, grupo: '', pessoas: [], deuPresente: false, ocultarPresentes: false };
 
   // ---- helpers de DOM ----
   function $(sel, raiz) { return (raiz || document).querySelector(sel); }
@@ -57,6 +57,7 @@
     estado.grupo = r.grupo || '';
     estado.pessoas = r.pessoas || [];
     estado.deuPresente = !!r.deuPresente;
+    estado.ocultarPresentes = !!r.ocultarPresentes;
   }
 
   // ===================================================================
@@ -212,11 +213,16 @@
   }
 
   function atualizarLembrete() {
-    mostrar($('#rsvp-lembrete'), !estado.deuPresente);
+    // Sem lista de presentes (colegas), não faz sentido o lembrete sobre ela.
+    mostrar($('#rsvp-lembrete'), !estado.deuPresente && !estado.ocultarPresentes);
   }
 
   // ---- presentes ----
   function carregarPresentes() {
+    // Convites marcados como colegas de trabalho não veem a lista de presentes.
+    var sec = $('#presentes');
+    if (estado.ocultarPresentes) { if (sec) sec.hidden = true; return; }
+    if (sec) sec.hidden = false;
     var lista = $('#presentes-lista');
     var obrig = $('#presentes-obrigado');
     if (obrig) {

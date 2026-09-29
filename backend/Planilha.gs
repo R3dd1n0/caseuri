@@ -21,7 +21,8 @@ var ABAS = {
       'categoria',          // adulto | crianca_meia | crianca_gratis
       'rsvp_status',        // pendente | confirmado | recusado (por pessoa)
       'rsvp_obs',           // recado / restrição alimentar (por pessoa, opcional)
-      'rsvp_atualizado_em'  // timestamp ISO
+      'rsvp_atualizado_em', // timestamp ISO
+      'ocultar_presentes'   // x/TRUE = este convite NÃO vê a lista de presentes
     ]
   },
   PRESENTES: {
