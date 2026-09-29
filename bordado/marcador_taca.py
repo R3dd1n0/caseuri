@@ -1,28 +1,31 @@
 #!/usr/bin/env python3
 """
-marcador_taca.py — marcador de taça em veludo (disco recortado de 70 mm com
-fenda até o furo central) com o nome do convidado bordado seguindo a curva.
+marcador_taca.py — marcador de taça em veludo: disco de pétalas (Ø 70 mm) com
+fenda até o furo central, CONTORNO BORDADO em satin e o nome do convidado
+(sempre dois nomes: "Nome Sobrenome") seguindo a curva.
 
-Gera, para cada convidado, um .DST (Tajima, lido pelas Barudan) com a ORIGEM
-NO CENTRO DO DISCO (centro do furo). Gera também `gabarito-recorte.dst`, só com
-o contorno do disco + furo + fenda em ponto corrido, na mesma origem: borde o
-gabarito primeiro (como linha de corte/posicionamento) e o nome em seguida,
-sem tirar o bastidor.
+Tudo sai num único .DST por convidado (Tajima, lido pelas Barudan), numa cor só:
+primeiro o nome, depois o contorno. O pano é cortado depois, rente por fora do
+contorno bordado (a borda externa do satin fica exatamente na linha de corte).
+O nome é reduzido automaticamente até ficar a pelo menos --margem mm da borda
+interna do contorno, em qualquer ponto.
+
+A ORIGEM do DST é o centro do disco (centro do furo).
 
 Uso:
     python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
         --nomes bordado/convidados.txt --saida bordado/saida-taca
 
-Geometria (mm, ver medidas do molde): pontas das "pétalas" a 35 mm do centro
-(Ø 70), vales a 32 mm (Ø 64), 10 pétalas, furo Ø 13, fenda de 2 mm no topo.
+Geometria (mm, do molde): pontas das pétalas a 35 mm do centro (Ø 70), vales a
+32 mm (Ø 64), 10 pétalas, furo Ø 13, fenda de 2 mm no topo.
 
 --angulo  onde fica o MEIO do nome, em graus: 0 = lado direito (3 h),
           -90 = embaixo (6 h), -15 = como no molde (lado direito, um pouco abaixo).
---raio    raio onde fica a parte de baixo do nome (pé das letras e descendentes,
+--raio    raio onde fica a parte de baixo do nome (pé das letras/descendentes,
           virada para a borda; o topo das letras fica virado para o centro).
-          Os vales das pétalas ficam a 32 mm, então 30 = 2 mm de folga.
---altura  altura máxima do nome (mm, maiúsculas + descendentes).
+--altura  altura máxima do nome (mm).
 --arco    comprimento máximo do nome, em graus de arco.
+--borda   largura do satin do contorno (mm).
 """
 import argparse
 import json
@@ -31,7 +34,7 @@ import os
 import sys
 import tempfile
 
-from gerar_marcadores import NS, SVG_VAZIO, _WxFinder, iniciais, ler_nomes, nome_arquivo
+from gerar_marcadores import NS, SVG_VAZIO, _WxFinder, ler_nomes, nome_arquivo
 
 # --- geometria do disco (mm, eixo y para cima, centro = 0,0)
 R_PONTA, R_VALE, PETALAS = 35.0, 32.0, 10
@@ -62,36 +65,94 @@ def contorno_disco(passo_graus=3):
     return pts
 
 
-def recorte(passo_graus=3):
-    """Contorno de corte completo: pétalas abertas na fenda + furo, como polígono único."""
+def recorte(passo_graus=1):
+    """Linha de corte: pétalas abertas na fenda + furo, como polígono único."""
     import shapely.geometry as g
     disco = g.Polygon(contorno_disco(passo_graus))
-    furo = g.Point(0, 0).buffer(R_FURO, 64)
+    furo = g.Point(0, 0).buffer(R_FURO, 128)
     fenda = g.box(-FENDA / 2, 0, FENDA / 2, R_PONTA + 1)
     return disco.difference(furo.union(fenda))
+
+
+def anel_comecando_no_topo(anel):
+    """Reordena o anel para começar no ponto mais perto do topo da fenda (lado direito)."""
+    import shapely.geometry as g
+    pts = list(anel.coords)[:-1]
+    alvo = (FENDA / 2, R_PONTA)
+    k = min(range(len(pts)), key=lambda i: math.dist(pts[i], alvo))
+    pts = pts[k:] + pts[:k]
+    return g.LinearRing(pts)
+
+
+def pontos_contorno(corte, largura, densidade=0.35, passo_base=2.0):
+    """
+    Pontos (mm, y para cima) do contorno em satin: base (ponto corrido no centro
+    da faixa + ponto corrido perto da borda interna) e depois o zigue-zague
+    entre a linha de corte e a borda interna. Começa e termina com arremate.
+    """
+    import shapely.geometry as g
+
+    def ring(offset):
+        forma = corte.buffer(-offset, join_style=1, quad_segs=32) if offset else corte
+        return anel_comecando_no_topo(forma.exterior)
+
+    externo = ring(0.05)       # um fio para dentro da linha de corte
+    interno = ring(largura)
+    centro = ring(largura / 2)
+    base_int = ring(largura - 0.35)
+
+    def corrido(anel, passo):
+        n = max(3, round(anel.length / passo))
+        return [anel.interpolate(anel.length * i / n).coords[0] for i in range(n + 1)]
+
+    pts = []
+    # arremate inicial
+    p0 = centro.coords[0]
+    p1 = centro.interpolate(0.6).coords[0]
+    pts += [p0, p1, p0, p1, p0]
+    # underlay: centro + borda interna (segura o pelo do veludo)
+    pts += corrido(centro, passo_base)
+    pts += corrido(base_int, passo_base)
+    # satin: zigue-zague externo/interno ao longo do centro
+    # nos cantos o ponto de um dos lados fica parado e o outro gira (leque)
+    n = round(centro.length / (densidade / 2))
+    for i in range(n + 1):
+        c = g.Point(centro.interpolate(centro.length * i / n))
+        lado = externo if i % 2 == 0 else interno
+        p = lado.interpolate(lado.project(c)).coords[0]
+        if not pts or p != pts[-1]:
+            pts.append(p)
+    # arremate final (em cima do satin, no centro da faixa)
+    q0 = centro.coords[0]
+    q1 = centro.interpolate(centro.length - 0.6).coords[0]
+    pts += [q0, q1, q0, q1, q0]
+    return pts
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--inkstitch', required=True, help='pasta do código-fonte do Ink/Stitch (com fonts/)')
-    ap.add_argument('--nomes', required=True)
-    ap.add_argument('--fonte', default='Chopin Script')
+    ap.add_argument('--nomes', required=True, help='um convidado por linha: "Nome Sobrenome"')
+    ap.add_argument('--fonte', default='Magnolia KOR')
     ap.add_argument('--angulo', type=float, default=-15.0)
-    ap.add_argument('--raio', type=float, default=30.0)
+    ap.add_argument('--raio', type=float, default=28.0)
     ap.add_argument('--altura', type=float, default=9.0)
     ap.add_argument('--arco', type=float, default=140.0)
+    ap.add_argument('--borda', type=float, default=1.6, help='largura do satin do contorno (mm)')
+    ap.add_argument('--margem', type=float, default=2.0, help='folga mínima entre o nome e o contorno (mm)')
     ap.add_argument('--espaco', type=float, default=0, help='espaço extra entre palavras (unidades da fonte)')
-    ap.add_argument('--margem', type=float, default=2.0, help='distância mínima do bordado até o corte (mm)')
-    ap.add_argument('--iniciais', action='store_true')
-    ap.add_argument('--engrossar', type=float, default=0.15,
-                    help='mm mínimos somados a cada lado das colunas de satin (veludo)')
-    ap.add_argument('--sem-veludo', action='store_true', help='não reforçar o underlay')
+    ap.add_argument('--engrossar', type=float, default=0.12,
+                    help='mm mínimos somados a cada lado das colunas de satin das letras (veludo)')
+    ap.add_argument('--sem-veludo', action='store_true', help='não reforçar o underlay das letras')
     ap.add_argument('--cor', default='#C9A45C', help='cor da linha na prévia')
     ap.add_argument('--fundo', default='#740C23', help='cor do veludo na prévia')
     ap.add_argument('--saida', default='saida-taca')
     args = ap.parse_args()
 
     nomes = ler_nomes(args.nomes)
+    errados = [n for n in nomes if len(n.split()) != 2]
+    if errados:
+        sys.exit('Cada convidado precisa ter exatamente dois nomes. Corrija:\n  ' + '\n  '.join(errados))
     saida = os.path.abspath(args.saida)
     os.makedirs(saida, exist_ok=True)
 
@@ -101,6 +162,7 @@ def main():
     os.chdir(ink)  # Ink/Stitch procura fonts/ relativo à própria pasta
 
     import pystitch
+    import shapely.geometry as g
     from inkex import Group, PathElement
     import lib.output
     from lib.extensions.batch_lettering import BatchLettering
@@ -130,11 +192,14 @@ def main():
     # origem do DST = centro do disco (e não o centro do desenho)
     lib.output.get_origin = lambda svg, bbox: Point(CX * PIXELS_PER_MM, CY * PIXELS_PER_MM)
 
+    corte = recorte()
+    livre = corte.buffer(-(args.borda + args.margem))  # onde o nome pode ficar
+    contorno = pontos_contorno(corte, args.borda)
+
     def ajustes(grupo, escala):
         # Abaixo da escala mínima, a compensação de puxada (mm fixos) engorda as
         # letras: reduz na proporção da escala. Mas no veludo os traços finos
-        # (floreios) somem no pelo, então garante um mínimo por lado, o que dá
-        # aos traços finos ~0,3 mm a mais de largura.
+        # somem no pelo, então garante um mínimo por lado.
         fator = min(1.0, escala / fonte.min_scale)
         minimo = 0.0 if args.sem_veludo else args.engrossar
         for no in grupo.iter():
@@ -181,84 +246,94 @@ def main():
         x0, y0, x1, y1 = sp.bounding_box
         return (x1 - x0) / PIXELS_PER_MM, (y1 - y0) / PIXELS_PER_MM
 
+    def nome_no_arco(texto, escala, destino):
+        """Borda o nome no arco, grava num DST temporário e devolve o padrão lido."""
+        sp = plano(texto, escala, True)
+        lib.output.write_embroidery_file(destino, sp, ext.svg)
+        return pystitch.read(destino)
+
+    def folga(pat):
+        """Menor distância entre a linha do nome e a borda interna do contorno."""
+        segs, ant = [], None
+        for x, y, c in pat.stitches:
+            p = (x / 10, -y / 10)
+            if c == pystitch.STITCH:
+                if ant is not None and ant != p:
+                    segs.append((ant, p))
+                ant = p
+            else:
+                ant = None
+        linhas = g.MultiLineString(segs)
+        interno = corte.buffer(-args.borda)
+        if not interno.contains(linhas):
+            return -1.0
+        return interno.exterior.distance(linhas)
+
     limite_arco = args.raio * math.radians(args.arco)
-    area = recorte()
-    import shapely.geometry as g
     relatorio = []
+    tmp = tempfile.NamedTemporaryFile(suffix='.dst', delete=False).name
     for i, nome in enumerate(nomes, 1):
-        texto = (iniciais(nome) if args.iniciais else nome).replace('|', ' ')
+        texto = nome
         escala = 1.0
         for _ in range(2):  # 2ª passada corrige o que não escala linearmente
             w, h = medida_mm(plano(texto, escala, False))
             escala *= min(args.altura / h, limite_arco / w)
+        # garante a folga: diminui o nome até caber
+        while True:
+            pat = nome_no_arco(texto, escala, tmp)
+            f = folga(pat)
+            if f >= args.margem:
+                break
+            escala *= 0.97
         w, h = medida_mm(plano(texto, escala, False))
-        sp = plano(texto, escala, True)
 
+        # junta: nome -> corte de linha -> contorno, tudo na mesma cor
+        final = pystitch.EmbPattern()
         base = nome_arquivo(i, texto)
-        ext.svg.set('sodipodi:docname', base + '.svg')  # título no cabeçalho do DST
+        final.extras['name'] = base[:8]
+        final.add_thread(pystitch.EmbThread('#C9A45C'))
+        for x, y, c in pat.stitches:
+            if c == pystitch.END:
+                break
+            final.add_stitch_absolute(c, x, y)
+        final.add_stitch_absolute(pystitch.TRIM, *final.stitches[-1][:2])
+        x0, y0 = contorno[0]
+        final.add_stitch_absolute(pystitch.JUMP, x0 * 10, -y0 * 10)
+        for x, y in contorno:
+            final.add_stitch_absolute(pystitch.STITCH, x * 10, -y * 10)
+        final.add_stitch_absolute(pystitch.TRIM, *final.stitches[-1][:2])
+        final.add_command(pystitch.END)
         dst = os.path.join(saida, base + '.dst')
-        lib.output.write_embroidery_file(dst, sp, ext.svg)
+        pystitch.write(final, dst)
 
-        pat = pystitch.read(dst)
-        pts = [(x / 10, -y / 10) for x, y, c in pat.stitches if c == pystitch.STITCH]
-        folga = min(area.exterior.distance(g.Point(p)) if area.contains(g.Point(p)) else -1 for p in pts)
-        for anel in area.interiors:
-            folga = min(folga, min(anel.distance(g.Point(p)) for p in pts))
-        # (a escala fica bem abaixo da mínima que a fonte sugere; por isso o
-        # --engrossar garante espessura mínima nos traços finos)
-        avisos = []
-        if folga < args.margem:
-            avisos.append(f'só {folga:.1f} mm até o corte' if folga >= 0 else 'SAI DO DISCO')
-        pontos = pat.count_stitches()
-        cortes = pat.count_stitch_commands(pystitch.TRIM)
-        linha = (f'{base}.dst  {nome.replace("|", " ")}  arco {w:.0f} mm ({math.degrees(w / args.raio):.0f}°), '
-                 f'altura {h:.1f} mm, {pontos} pontos, {cortes} cortes, {folga:.1f} mm até o corte')
-        if avisos:
-            linha += '  (!) ' + '; '.join(avisos)
+        conf = pystitch.read(dst)
+        pontos = conf.count_stitches()
+        linha = (f'{base}.dst  {nome}  altura {h:.1f} mm, arco {math.degrees(w / args.raio):.0f}°, '
+                 f'{pontos} pontos, {conf.count_stitch_commands(pystitch.TRIM)} cortes, '
+                 f'{f:.1f} mm entre o nome e o contorno')
         print(linha)
-        relatorio.append((base, nome.replace('|', ' '), linha))
+        relatorio.append((base, nome, linha))
+    os.unlink(tmp)
 
-    escrever_gabarito(os.path.join(saida, 'gabarito-recorte.dst'))
-    gerar_previas(saida, relatorio, args.cor, args.fundo)
-    with open(os.path.join(saida, 'relatorio.txt'), 'w', encoding='utf-8') as f:
-        f.write(f'Fonte: {args.fonte} | raio {args.raio:g} mm | ângulo {args.angulo:g}° | '
-                f'altura máx {args.altura:g} mm | arco máx {args.arco:g}°\n'
-                f'Origem de todos os DST = centro do disco (centro do furo).\n\n')
+    gerar_previas(saida, relatorio, corte, args.cor, args.fundo)
+    with open(os.path.join(saida, 'relatorio.txt'), 'w', encoding='utf-8') as fp:
+        fp.write(f'Fonte: {args.fonte} | ângulo {args.angulo:g}° | altura máx {args.altura:g} mm | '
+                 f'contorno satin {args.borda:g} mm | folga mínima {args.margem:g} mm\n'
+                 f'Origem de todos os DST = centro do disco (centro do furo).\n'
+                 f'Ordem: nome, corte de linha, contorno. Uma cor só.\n\n')
         for *_, linha in relatorio:
-            f.write(linha + '\n')
+            fp.write(linha + '\n')
 
 
-def escrever_gabarito(caminho, passo=2.5):
-    """Contorno de corte (pétalas + fenda + furo) em ponto corrido, origem no centro."""
-    import pystitch
-    pat = pystitch.EmbPattern()
-    pat.extras['name'] = 'GABARITO'
-
-    def corrido(anel, pular_para=True):
-        coords = list(anel.coords)
-        x, y = coords[0]
-        pat.add_stitch_absolute(pystitch.JUMP if pular_para else pystitch.STITCH, x * 10, -y * 10)
-        for (x0, y0), (x1, y1) in zip(coords, coords[1:]):
-            n = max(1, round(math.hypot(x1 - x0, y1 - y0) / passo))
-            for k in range(1, n + 1):
-                t = k / n
-                pat.add_stitch_absolute(pystitch.STITCH, (x0 + (x1 - x0) * t) * 10, -(y0 + (y1 - y0) * t) * 10)
-
-    forma = recorte(passo_graus=2)
-    corrido(forma.exterior)
-    pat.add_command(pystitch.END)
-    pystitch.write(pat, caminho)
-
-
-def gerar_previas(saida, relatorio, cor, fundo):
-    """Desenha o disco de veludo com o bordado por cima, em escala (12 px/mm)."""
+def gerar_previas(saida, relatorio, corte, cor, fundo):
+    """Desenha o disco de veludo (cortado 0,5 mm por fora do contorno) com o bordado."""
     import pystitch
     from PIL import Image, ImageDraw, ImageFont
 
     PX = 12
     LADO = int(78 * PX)
     meio = LADO / 2
-    forma = recorte(passo_graus=1)
+    pano = corte.buffer(0.5)
 
     def xy(x, y):  # mm (y para cima) -> pixel
         return (meio + x * PX, meio - y * PX)
@@ -271,14 +346,14 @@ def gerar_previas(saida, relatorio, cor, fundo):
     for base, nome, _ in relatorio:
         img = Image.new('RGB', (LADO, LADO), 'white')
         d = ImageDraw.Draw(img)
-        d.polygon([xy(*p) for p in forma.exterior.coords], fill=fundo, outline='#333333')
+        d.polygon([xy(*p) for p in pano.exterior.coords], fill=fundo)
         pat = pystitch.read(os.path.join(saida, base + '.dst'))
         ant = None
         for x, y, cmd in pat.stitches:
             p = xy(x / 10, -y / 10)
             if cmd == pystitch.STITCH:
                 if ant is not None:
-                    d.line([ant, p], fill=cor, width=max(1, int(0.35 * PX)))
+                    d.line([ant, p], fill=cor, width=max(1, int(0.3 * PX)))
                 ant = p
             else:
                 ant = None
