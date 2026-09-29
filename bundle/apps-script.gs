@@ -328,6 +328,15 @@ function setupPlanilha() {
 
 var PARTICULAS = { 'de': 1, 'da': 1, 'do': 1, 'das': 1, 'dos': 1, 'e': 1, 'di': 1, 'du': 1 };
 
+/**
+ * Convites que NÃO veem a lista de presentes (ex.: colegas de trabalho).
+ * Guardamos por convite_id (código opaco), nunca por nome, para não expor
+ * ninguém no repositório público. Alternativamente, dá para marcar a coluna
+ * ocultar_presentes na planilha; qualquer um dos dois esconde a seção.
+ * Para mudar quem entra aqui, é só editar esta lista.
+ */
+var CONVITES_OCULTAR_PRESENTES = { 'c25': 1, 'c26': 1, 'c27': 1, 'c30': 1 };
+
 /** Interpreta marcas de "verdadeiro" na planilha: caixa marcada, x, sim, 1... */
 function ehVerdadeiro(v) {
   if (v === true) return true;
@@ -425,7 +434,7 @@ function conviteResposta(conviteId) {
 /** Lê um convite: rótulo + pessoas (com _linha para escrita). */
 function conviteInfo(conviteId) {
   var t = lerTabela(ABAS.CONVIDADOS);
-  var ocultarPresentes = false;
+  var ocultarPresentes = !!CONVITES_OCULTAR_PRESENTES[String(conviteId)];
   var pessoas = t.linhas.filter(function (p) {
     return String(p.convite_id) === String(conviteId);
   }).map(function (p) {
