@@ -1,5 +1,31 @@
 # Marcadores de taça — bordado (Barudan)
 
+## Marcador em disco (modelo escolhido)
+
+`marcador_taca.py` — disco de veludo com pétalas (Ø 70 mm, vales Ø 64 mm,
+furo Ø 13 mm, fenda no topo) e o **nome seguindo a curva** da borda, em
+**Chopin Script** (a mais parecida com a do molde).
+
+```sh
+python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
+  --nomes bordado/convidados.txt --saida bordado/saida-taca
+```
+
+- Um `.dst` por convidado, **origem no centro do disco** (centro do furo):
+  posicione a agulha no centro marcado no veludo e borde.
+- `gabarito-recorte.dst`: contorno de corte (pétalas + fenda + furo) em ponto
+  corrido, mesma origem. Opcional: borde antes do nome, sem tirar do bastidor,
+  para ter a linha de corte certinha em volta do nome.
+- `--angulo -15` (padrão, como no molde: lado direito); `--angulo -90` põe o
+  nome embaixo, lendo normalmente. `--altura 9` (mm), `--arco 140` (graus
+  máximos), `--raio 30` (pé das letras a 2 mm do vale das pétalas).
+- A fonte fica bem abaixo da escala para a qual foi desenhada, por isso o
+  script garante espessura mínima nos traços finos (`--engrossar 0.15` mm por
+  lado) e reforça o underlay. `relatorio.txt` mostra a folga até o corte.
+
+## Nome reto (primeira versão)
+
+
 Gera um arquivo **.DST** (formato Tajima, que as Barudan leem) por convidado,
 com o nome ou as iniciais em fonte cursiva já digitalizada para bordado
 (fontes do [Ink/Stitch](https://inkstitch.org), em ponto *satin*).
