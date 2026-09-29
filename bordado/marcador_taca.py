@@ -34,6 +34,7 @@ import os
 import sys
 import tempfile
 
+from acentos import caracteres_faltando, completar_fonte
 from gerar_marcadores import NS, SVG_VAZIO, _WxFinder, ler_nomes, nome_arquivo
 
 # --- geometria do disco (mm, eixo y para cima, centro = 0,0)
@@ -133,7 +134,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--inkstitch', required=True, help='pasta do código-fonte do Ink/Stitch (com fonts/)')
     ap.add_argument('--nomes', required=True, help='um convidado por linha: "Nome Sobrenome"')
-    ap.add_argument('--fonte', default='Magnolia KOR')
+    ap.add_argument('--fonte', default='Magnolia tamed')
     ap.add_argument('--angulo', type=float, default=-15.0)
     ap.add_argument('--raio', type=float, default=28.0)
     ap.add_argument('--altura', type=float, default=9.0)
@@ -144,7 +145,7 @@ def main():
     ap.add_argument('--engrossar', type=float, default=0.12,
                     help='mm mínimos somados a cada lado das colunas de satin das letras (veludo)')
     ap.add_argument('--sem-veludo', action='store_true', help='não reforçar o underlay das letras')
-    ap.add_argument('--cor', default='#C9A45C', help='cor da linha na prévia')
+    ap.add_argument('--cor', default='#6B7B2E', help='cor da linha (verde-oliva)')
     ap.add_argument('--fundo', default='#740C23', help='cor do veludo na prévia')
     ap.add_argument('--saida', default='saida-taca')
     args = ap.parse_args()
@@ -175,6 +176,13 @@ def main():
     fonte = get_font_by_name(args.fonte, False)
     if fonte is None:
         sys.exit(f'Fonte não encontrada: {args.fonte}')
+    faltando = caracteres_faltando(fonte, ''.join(nomes))
+    if faltando:
+        nome_pt, impossiveis = completar_fonte(fonte, faltando)
+        if impossiveis:
+            sys.exit(f'A fonte {args.fonte} não tem e não dá para montar: {" ".join(impossiveis)}')
+        print(f'Fonte completada com: {" ".join(faltando)}  ({nome_pt})')
+        fonte = get_font_by_name(nome_pt, False)
 
     svg_tmp = tempfile.NamedTemporaryFile('w', suffix='.svg', delete=False)
     svg_tmp.write(SVG_VAZIO)
@@ -291,10 +299,13 @@ def main():
         final = pystitch.EmbPattern()
         base = nome_arquivo(i, texto)
         final.extras['name'] = base[:8]
-        final.add_thread(pystitch.EmbThread('#C9A45C'))
+        final.add_thread(pystitch.EmbThread(args.cor))
         for x, y, c in pat.stitches:
+            c &= pystitch.COMMAND_MASK
             if c == pystitch.END:
                 break
+            if c in (pystitch.COLOR_CHANGE, pystitch.STOP):
+                c = pystitch.TRIM  # fontes bicolores: tudo numa linha só, sem parada
             final.add_stitch_absolute(c, x, y)
         final.add_stitch_absolute(pystitch.TRIM, *final.stitches[-1][:2])
         x0, y0 = contorno[0]
