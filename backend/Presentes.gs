@@ -64,14 +64,17 @@ function acaoPresenteReservar(params) {
     return { ok: false, erro: 'dados_invalidos' };
   }
 
-  return gerarCobranca(conviteId, {
+  var dados = {
     tipo: presente.tipo === 'livre' ? 'livre' : 'item',
     presenteId: presente.id,
     titulo: presente.titulo,
     valor: valor,
     mensagem: params.mensagem || '',
     revertePresente: presente.tipo === 'item' ? presente : null
-  });
+  };
+  return params.metodo === 'cartao'
+    ? gerarCheckoutCartao(conviteId, dados)
+    : gerarCobranca(conviteId, dados);
 }
 
 /** POST contribuirLivre — PIX de valor livre (nunca esgota). */
@@ -82,14 +85,17 @@ function acaoContribuirLivre(params) {
   var valor = Number(params.valor);
   if (!valor || valor <= 0) return { ok: false, erro: 'dados_invalidos' };
 
-  return gerarCobranca(conviteId, {
+  var dados = {
     tipo: 'livre',
     presenteId: params.presenteId || 'livre',
     titulo: 'Contribuição livre',
     valor: valor,
     mensagem: params.mensagem || '',
     revertePresente: null
-  });
+  };
+  return params.metodo === 'cartao'
+    ? gerarCheckoutCartao(conviteId, dados)
+    : gerarCobranca(conviteId, dados);
 }
 
 /** GET pagamentoStatus — o frontend faz polling até confirmar. */
@@ -147,6 +153,49 @@ function gerarCobranca(conviteId, dados) {
       expiraEm: cobranca.expiraEm || ''
     }
   };
+}
+
+/**
+ * Cartão: cria a preferência de Checkout Pro e registra um pagamento pendente
+ * com chave provisória 'cc:<nonce>'. O pagamento real só nasce quando o
+ * convidado paga na tela do MP; a conciliação (MercadoPago.gs) troca a chave
+ * pelo id real e esgota o item. Reverte a reserva se a criação falhar.
+ */
+function gerarCheckoutCartao(conviteId, dados) {
+  var grupo = grupoDoConvite(conviteId);
+  var descricao = (configValor('MP_DESCRICAO_PREFIXO', 'Presente de casamento')) +
+    ' - ' + dados.titulo;
+  var nonce = Utilities.getUuid();
+  var extRef = conviteId + ':' + dados.presenteId + ':' + nonce;
+
+  var pref;
+  try {
+    pref = mpCriarPreferenciaCartao(dados.valor, descricao, extRef);
+  } catch (err) {
+    console.error('Falha ao criar preferência MP (cartão): ' + err);
+    if (dados.revertePresente) {
+      atualizarLinha(ABAS.PRESENTES, dados.revertePresente._linha, {
+        status: 'disponivel', reservado_por: '', reservado_em: ''
+      });
+    }
+    return { ok: false, erro: 'interno' };
+  }
+
+  inserirLinha(ABAS.PAGAMENTOS, {
+    payment_id: 'cc:' + nonce,
+    convite_id: conviteId,
+    grupo: grupo,
+    tipo: dados.tipo,
+    presente_id: dados.presenteId,
+    titulo: dados.titulo,
+    valor: dados.valor,
+    status: 'pendente',
+    mensagem: dados.mensagem,
+    criado_em: new Date().toISOString(),
+    confirmado_em: ''
+  });
+
+  return { ok: true, metodo: 'cartao', url: pref.initPoint };
 }
 
 function acharPresente(id) {

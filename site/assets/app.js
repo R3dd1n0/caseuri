@@ -105,6 +105,7 @@
     montarRsvp();
     carregarPresentes();
     atualizarLembrete();
+    tratarRetornoCartao();
   }
 
   // Oculta seções opcionais cujo corpo está vazio no conteudo.js.
@@ -250,31 +251,99 @@
 
     if (p.tipo === 'livre') {
       var inpV = el('input', { class: 'campo', type: 'number', min: '1', placeholder: 'Valor em reais' });
-      var btnV = el('button', { class: 'botao', text: C.presentes.livreChamada });
-      btnV.addEventListener('click', function () {
+      var btnPixL = el('button', { class: 'botao', text: C.presentes.pagarPix });
+      var btnCardL = el('button', { class: 'botao botao--secundario', text: C.presentes.pagarCartao });
+      var valorLivre = function () {
         var v = Number(inpV.value);
-        if (!v || v <= 0) { inpV.focus(); return; }
-        var rotulo = btnV.textContent;
-        btnV.disabled = true; btnV.textContent = 'Gerando Pix…';
+        if (!v || v <= 0) { inpV.focus(); return null; }
+        return v;
+      };
+      var travaL = function (t) { btnPixL.disabled = t; btnCardL.disabled = t; };
+      btnPixL.addEventListener('click', function () {
+        var v = valorLivre(); if (v === null) return;
+        travaL(true); btnPixL.textContent = 'Gerando Pix…';
         iniciarPix(window.API.contribuirLivre(estado.token, v, '', p.id), function () {
-          btnV.disabled = false; btnV.textContent = rotulo;
+          travaL(false); btnPixL.textContent = C.presentes.pagarPix;
         });
       });
-      filhos.push(inpV, btnV);
+      btnCardL.addEventListener('click', function () {
+        var v = valorLivre(); if (v === null) return;
+        travaL(true); btnCardL.textContent = 'Abrindo…';
+        iniciarCartao(window.API.cartaoLivre(estado.token, v, '', p.id), function () {
+          travaL(false); btnCardL.textContent = C.presentes.pagarCartao;
+        });
+      });
+      filhos.push(inpV, el('div', { class: 'acoes' }, [btnPixL, btnCardL]));
     } else if (esgotado) {
       filhos.push(el('span', { class: 'selo', text: '✓ Já presenteado' }));
+    } else if (reservado) {
+      var res = el('button', { class: 'botao', text: 'Reservado' });
+      res.disabled = true;
+      filhos.push(res);
     } else {
-      var btn = el('button', { class: 'botao', text: reservado ? 'Reservado' : 'Quero dar' });
-      if (reservado) btn.disabled = true;
-      btn.addEventListener('click', function () {
-        btn.disabled = true; btn.textContent = 'Gerando Pix…';
+      var btnPixI = el('button', { class: 'botao', text: C.presentes.pagarPix });
+      var btnCardI = el('button', { class: 'botao botao--secundario', text: C.presentes.pagarCartao });
+      var travaI = function (t) { btnPixI.disabled = t; btnCardI.disabled = t; };
+      btnPixI.addEventListener('click', function () {
+        travaI(true); btnPixI.textContent = 'Gerando Pix…';
         iniciarPix(window.API.presenteReservar(estado.token, p.id, ''), function () {
-          btn.disabled = false; btn.textContent = 'Quero dar';
+          travaI(false); btnPixI.textContent = C.presentes.pagarPix;
         });
       });
-      filhos.push(btn);
+      btnCardI.addEventListener('click', function () {
+        travaI(true); btnCardI.textContent = 'Abrindo…';
+        iniciarCartao(window.API.cartaoItem(estado.token, p.id, ''), function () {
+          travaI(false); btnCardI.textContent = C.presentes.pagarCartao;
+        });
+      });
+      filhos.push(el('div', { class: 'acoes' }, [btnPixI, btnCardI]));
     }
     return el('div', { class: 'card-presente' + (esgotado ? ' esgotado' : '') }, filhos);
+  }
+
+  // ---- fluxo CARTÃO (redireciona pro Checkout Pro do Mercado Pago) ----
+  function iniciarCartao(promessa, onFail) {
+    var msg = $('#presentes-msg');
+    promessa.then(function (r) {
+      if (r && r.ok && r.url) { window.location.href = r.url; return; } // sai do site
+      var m = r && r.erro === 'presente_indisponivel'
+            ? 'Esse presente acabou de ser escolhido por outra pessoa.'
+            : 'Não conseguimos abrir o pagamento no cartão. Tente de novo.';
+      if (msg) { msg.textContent = m; msg.className = 'msg msg--erro'; }
+      if (onFail) onFail();
+    }).catch(function () {
+      if (msg) { msg.textContent = 'Erro de conexão. Tente de novo.'; msg.className = 'msg msg--erro'; }
+      if (onFail) onFail();
+    });
+  }
+
+  // Volta do Checkout Pro: o MP redireciona pra cá com ?pgto=cartao&status=...
+  function tratarRetornoCartao() {
+    var q; try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    if (!q || q.get('pgto') !== 'cartao') return;
+    var status = q.get('status') || q.get('collection_status') || '';
+    try { history.replaceState({}, '', location.pathname); } catch (e) {}
+
+    var sec = $('#presentes'); if (sec && !sec.hidden) sec.open = true;
+    var alvo = $('#presentes-msg');
+    var texto, classe;
+    if (status === 'approved') {
+      texto = 'Pagamento no cartão recebido' + (estado.grupo ? ', obrigado ' + estado.grupo : ', muito obrigado') + ' 💛';
+      classe = 'msg msg--ok';
+    } else if (status === 'pending' || status === 'in_process') {
+      texto = 'Seu pagamento no cartão está sendo processado. Assim que aprovar, a gente registra.';
+      classe = 'msg';
+    } else {
+      texto = 'O pagamento no cartão não foi concluído. Você pode tentar de novo quando quiser.';
+      classe = 'msg msg--erro';
+    }
+    if (alvo) { alvo.textContent = texto; alvo.className = classe; }
+    // Rede: o webhook confirma no servidor; aqui só atualizamos a lista algumas
+    // vezes pra refletir o item esgotado sem o convidado precisar recarregar.
+    if (status === 'approved') {
+      var n = 0;
+      var it = setInterval(function () { n++; carregarPresentes(); if (n >= 6) clearInterval(it); }, 5000);
+    }
   }
 
   // ---- fluxo PIX (modal + polling) ----

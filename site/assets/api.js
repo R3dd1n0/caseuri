@@ -66,6 +66,13 @@
       // sem retry: cria cobrança
       return post({ action: 'contribuirLivre', token: token, valor: valor, mensagem: mensagem || '', presenteId: presenteId || 'livre' }, false);
     },
+    // Cartão (Checkout Pro): reserva igual ao Pix, mas devolve um link p/ redirecionar.
+    cartaoItem: function (token, presenteId, mensagem) {
+      return post({ action: 'presenteReservar', token: token, presenteId: presenteId, mensagem: mensagem || '', metodo: 'cartao' }, false);
+    },
+    cartaoLivre: function (token, valor, mensagem, presenteId) {
+      return post({ action: 'contribuirLivre', token: token, valor: valor, mensagem: mensagem || '', presenteId: presenteId || 'livre', metodo: 'cartao' }, false);
+    },
     pagamentoStatus: function (paymentId) { return get('pagamentoStatus', { paymentId: paymentId }); }
   };
 })();

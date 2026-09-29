@@ -64,7 +64,10 @@ window.CONTEUDO = {
 
   presentes: {
     titulo: 'Lista de presentes',
-    intro: 'Escolha um presente ou contribua com o valor que quiser via Pix.',
+    intro: 'Escolha um presente ou contribua com o valor que quiser, no Pix ou no cartão.',
+    // rótulos dos botões de pagamento em cada presente
+    pagarPix: 'Pix',
+    pagarCartao: 'Cartão',
     // rótulo do card de contribuição livre (item tipo "livre" no catálogo)
     livreChamada: 'Contribuir com um valor',
     // mostrado depois que o convite já presenteou (nome do grupo entra na frente)
