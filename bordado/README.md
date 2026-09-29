@@ -4,8 +4,8 @@
 
 `marcador_taca.py` — disco de veludo com pétalas (Ø 70 mm, vales Ø 64 mm,
 furo Ø 13 mm, fenda de 2 mm no topo), **contorno bordado em satin** e o nome
-(**sempre dois nomes**, "Nome Sobrenome") seguindo a curva. Fontes escolhidas:
-**Magnolia tamed** (padrão) e **Allegria 55**; linha **verde-oliva** (`--cor`).
+(**sempre dois nomes**, "Nome Sobrenome") seguindo a curva. Fonte definitiva:
+**Magnolia tamed**; linha **verde-oliva** (`--cor`).
 
 ```sh
 python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
@@ -16,8 +16,13 @@ python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
   linha, depois o contorno (satin de 1,6 mm com base de ponto corrido).
 - A borda externa do satin fica **exatamente na linha de corte**: depois de
   bordar, corte o veludo rente por fora do contorno (e o furo/fenda por dentro).
-- O nome é reduzido automaticamente até ficar a pelo menos 2 mm (`--margem`)
-  da borda interna do contorno — o script confere cada ponto da linha.
+- **Mesmo tamanho de letra em todos os bordados**: a escala é única para a lista
+  inteira — a maior em que TODOS os nomes cabem (maiúscula "M" de até 7 mm,
+  `--altura`). O relatório diz qual nome limitou e a escala usada; para outro
+  lote sair igual, repita com `--escala <valor>`. Por isso, gere o casal junto
+  com a lista final.
+- Todo nome fica a pelo menos 2 mm (`--margem`) da borda interna do contorno —
+  o script confere cada ponto da linha.
 - **Origem no centro do disco** (centro do furo). Desenho: 69,8 × 67,8 mm.
 - Linha com mais ou menos de dois nomes é recusada.
 - Acentos: a Magnolia (de origem francesa) não tem á í ó ú ã õ Á Í Ó Ú Ã Õ.
@@ -27,7 +32,7 @@ python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
 - Fontes bicolores (Magnolia tamed) saem numa linha só: as trocas de cor viram
   cortes de linha, sem parada da máquina.
 - `--fonte "Allegria 55"`, `--angulo -15`
-  (padrão, como no molde) ou `-90` (nome embaixo), `--altura 9` (mm),
+  (padrão, como no molde) ou `-90` (nome embaixo), `--altura 7` (mm, maiúscula),
   `--borda 1.6` (mm), `--margem 2` (mm).
 
 ## Nome reto (primeira versão)

@@ -23,7 +23,9 @@ Geometria (mm, do molde): pontas das pétalas a 35 mm do centro (Ø 70), vales a
           -90 = embaixo (6 h), -15 = como no molde (lado direito, um pouco abaixo).
 --raio    raio onde fica a parte de baixo do nome (pé das letras/descendentes,
           virada para a borda; o topo das letras fica virado para o centro).
---altura  altura máxima do nome (mm).
+--altura  altura máxima da letra maiúscula (M), em mm.
+--escala  tamanho da letra, igual para todos. Padrão: o maior em que TODOS os
+          nomes da lista cabem (o relatório mostra qual nome limitou).
 --arco    comprimento máximo do nome, em graus de arco.
 --borda   largura do satin do contorno (mm).
 """
@@ -137,8 +139,9 @@ def main():
     ap.add_argument('--fonte', default='Magnolia tamed')
     ap.add_argument('--angulo', type=float, default=-15.0)
     ap.add_argument('--raio', type=float, default=28.0)
-    ap.add_argument('--altura', type=float, default=9.0)
-    ap.add_argument('--arco', type=float, default=140.0)
+    ap.add_argument('--altura', type=float, default=7.0, help='altura máxima da maiúscula M (mm)')
+    ap.add_argument('--arco', type=float, default=160.0)
+    ap.add_argument('--escala', type=float, default=0, help='escala fixa da fonte (padrão: a maior em que todos cabem)')
     ap.add_argument('--borda', type=float, default=1.6, help='largura do satin do contorno (mm)')
     ap.add_argument('--margem', type=float, default=2.0, help='folga mínima entre o nome e o contorno (mm)')
     ap.add_argument('--espaco', type=float, default=0, help='espaço extra entre palavras (unidades da fonte)')
@@ -278,21 +281,48 @@ def main():
         return interno.exterior.distance(linhas)
 
     limite_arco = args.raio * math.radians(args.arco)
-    relatorio = []
     tmp = tempfile.NamedTemporaryFile(suffix='.dst', delete=False).name
-    for i, nome in enumerate(nomes, 1):
-        texto = nome
-        escala = 1.0
+
+    def maior_escala(texto):
+        """Maior escala em que o nome cabe (altura, arco e folga do contorno)."""
+        escala = escala_pela_maiuscula
         for _ in range(2):  # 2ª passada corrige o que não escala linearmente
             w, h = medida_mm(plano(texto, escala, False))
-            escala *= min(args.altura / h, limite_arco / w)
-        # garante a folga: diminui o nome até caber
-        while True:
-            pat = nome_no_arco(texto, escala, tmp)
-            f = folga(pat)
-            if f >= args.margem:
-                break
-            escala *= 0.97
+            escala *= min(1.0, limite_arco / w)
+        while folga(nome_no_arco(texto, escala, tmp)) < args.margem:
+            escala *= 0.98
+        return escala
+
+    # tamanho da letra medido pela altura da maiúscula "M" (não pela altura total
+    # do nome, que muda com descendentes como j, g, p)
+    escala_pela_maiuscula = 1.0
+    for _ in range(2):
+        escala_pela_maiuscula *= args.altura / medida_mm(plano('M', escala_pela_maiuscula, False))[1]
+
+    # MESMO tamanho de letra para todos: a escala é a do nome que mais precisa
+    # encolher (ou a informada em --escala, para repetir o tamanho de outro lote).
+    if args.escala:
+        escala = args.escala
+        limitante = None
+    else:
+        maximas = {}
+        for nome in nomes:
+            maximas[nome] = maior_escala(nome)
+            print(f'  {nome}: cabe até escala {maximas[nome]:.4f}')
+        limitante = min(maximas, key=maximas.get)
+        escala = maximas[limitante]
+    print(f'Escala única: {escala:.4f}' + (f'  (limitada por "{limitante}")' if limitante else ''))
+
+    altura_m = medida_mm(plano('M', escala, False))[1]
+    print(f'Altura da maiúscula M: {altura_m:.1f} mm (igual em todos)')
+    relatorio = []
+    for i, nome in enumerate(nomes, 1):
+        texto = nome
+        pat = nome_no_arco(texto, escala, tmp)
+        f = folga(pat)
+        if f < args.margem:
+            sys.exit(f'"{nome}" não cabe na escala {escala:.4f} ({f:.1f} mm do contorno). '
+                     f'Diminua --escala ou abrevie o nome.')
         w, h = medida_mm(plano(texto, escala, False))
 
         # junta: nome -> corte de linha -> contorno, tudo na mesma cor
@@ -319,7 +349,7 @@ def main():
 
         conf = pystitch.read(dst)
         pontos = conf.count_stitches()
-        linha = (f'{base}.dst  {nome}  altura {h:.1f} mm, arco {math.degrees(w / args.raio):.0f}°, '
+        linha = (f'{base}.dst  {nome}  maiúscula {altura_m:.1f} mm, altura total {h:.1f} mm, arco {math.degrees(w / args.raio):.0f}°, '
                  f'{pontos} pontos, {conf.count_stitch_commands(pystitch.TRIM)} cortes, '
                  f'{f:.1f} mm entre o nome e o contorno')
         print(linha)
@@ -328,7 +358,8 @@ def main():
 
     gerar_previas(saida, relatorio, corte, args.cor, args.fundo)
     with open(os.path.join(saida, 'relatorio.txt'), 'w', encoding='utf-8') as fp:
-        fp.write(f'Fonte: {args.fonte} | ângulo {args.angulo:g}° | altura máx {args.altura:g} mm | '
+        fp.write(f'Fonte: {args.fonte} | ESCALA ÚNICA {escala:.4f} (repita com --escala {escala:.4f} '
+                 f'para outro lote sair do mesmo tamanho) | ângulo {args.angulo:g}° | maiúscula {altura_m:.1f} mm | '
                  f'contorno satin {args.borda:g} mm | folga mínima {args.margem:g} mm\n'
                  f'Origem de todos os DST = centro do disco (centro do furo).\n'
                  f'Ordem: nome, corte de linha, contorno. Uma cor só.\n\n')
