@@ -4,7 +4,8 @@ marcador_taca.py — marcador de taça em veludo: disco de pétalas (Ø 70 mm) c
 fenda até o furo central, CONTORNO BORDADO em satin e o nome do convidado
 (sempre dois nomes: "Nome Sobrenome") seguindo a curva.
 
-Tudo sai num único .DST por convidado (Tajima, lido pelas Barudan), numa cor só:
+Tudo sai num único arquivo por convidado, em .U01 (nativo da Barudan) e .DST
+(Tajima, lido por quase todas as máquinas), numa cor só:
 primeiro o nome, depois o contorno. O pano é cortado depois, rente por fora do
 contorno bordado (a borda externa do satin fica exatamente na linha de corte).
 O nome é reduzido automaticamente até ficar a pelo menos --margem mm da borda
@@ -346,6 +347,8 @@ def main():
         final.add_command(pystitch.END)
         dst = os.path.join(saida, base + '.dst')
         pystitch.write(final, dst)
+        # U01 = formato nativo da Barudan (o DST também é lido por elas)
+        pystitch.write(final, os.path.join(saida, base + '.u01'))
 
         conf = pystitch.read(dst)
         pontos = conf.count_stitches()
