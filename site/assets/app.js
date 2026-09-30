@@ -28,6 +28,13 @@
       var val = caminho(C, n.getAttribute('data-bind'));
       if (val != null) n.textContent = val;
     });
+    // data-bind-paragrafos="a.b" -> um <p> por item do array
+    (raiz || document).querySelectorAll('[data-bind-paragrafos]').forEach(function (n) {
+      var arr = caminho(C, n.getAttribute('data-bind-paragrafos'));
+      if (!Array.isArray(arr)) return;
+      n.innerHTML = '';
+      arr.forEach(function (txt) { n.appendChild(el('p', { text: txt })); });
+    });
   }
   function caminho(obj, path) {
     return path.split('.').reduce(function (o, k) { return o ? o[k] : undefined; }, obj);
@@ -101,25 +108,83 @@
     $('#hub').classList.add('visivel');
     hydrateLinks();
     ocultarSecoesVazias();
+    montarHistoria();
     iniciarContagem();
     montarRsvp();
     carregarPresentes();
+    montarMural();
     atualizarLembrete();
     tratarRetornoCartao();
   }
 
   // Oculta seções opcionais cujo corpo está vazio no conteudo.js.
   function ocultarSecoesVazias() {
-    var opcionais = {
-      historia: 'secoes.historia.corpo',
-      info: 'secoes.informacoes.corpo',
-      recados: 'secoes.recados.corpo'
-    };
+    var opcionais = { info: 'secoes.informacoes.corpo' };
     Object.keys(opcionais).forEach(function (id) {
       var sec = $('#' + id);
       var val = caminho(C, opcionais[id]);
       if (sec) sec.hidden = !val || String(val).trim() === '';
     });
+  }
+
+  // ---- Linha do tempo de fotos (dentro de "Nossa história") ----
+  var galeriaFotos = [];
+  var fotoAtual = 0;
+  function montarHistoria() {
+    var faixa = $('#historia-fotos');
+    if (!faixa) return;
+    var fotos = (C.secoes.historia && C.secoes.historia.fotos) || [];
+    galeriaFotos = fotos.slice();
+    faixa.innerHTML = '';
+    fotos.forEach(function (f, i) {
+      var btn = el('button', { class: 'timeline-item', type: 'button', 'aria-label': 'Foto de ' + f.ano });
+      btn.appendChild(el('img', {
+        src: 'assets/historia/thumb-' + f.img + '.jpg',
+        alt: 'Felipe e Mariana em ' + f.ano, loading: 'lazy'
+      }));
+      btn.appendChild(el('span', { class: 'timeline-ano', text: f.ano }));
+      btn.addEventListener('click', function () { abrirFoto(i); });
+      faixa.appendChild(btn);
+    });
+    mostrar(faixa, fotos.length > 0);
+  }
+  function abrirFoto(i) {
+    if (!galeriaFotos.length) return;
+    fotoAtual = (i + galeriaFotos.length) % galeriaFotos.length;
+    var f = galeriaFotos[fotoAtual];
+    var img = $('#foto-img'), ano = $('#foto-ano');
+    if (img) img.src = 'assets/historia/full-' + f.img + '.jpg';
+    if (ano) ano.textContent = f.ano;
+    mostrar($('#foto-modal'), true);
+  }
+  function passarFoto(d) { abrirFoto(fotoAtual + d); }
+  function fecharFoto() {
+    mostrar($('#foto-modal'), false);
+    var img = $('#foto-img'); if (img) img.removeAttribute('src');
+  }
+
+  // ---- Mural de recados (privado: o convidado escreve para os noivos) ----
+  function montarMural() {
+    var form = $('#recado-form'); if (!form) return;
+    var nome = $('#recado-nome'), msg = $('#recado-msg');
+    if (nome) nome.placeholder = C.mural.placeholderNome || '';
+    if (msg) msg.placeholder = C.mural.placeholderMensagem || '';
+    form.onsubmit = function (ev) {
+      ev.preventDefault();
+      var status = $('#recado-status');
+      var texto = ((msg && msg.value) || '').trim();
+      if (!texto) { if (msg) msg.focus(); return; }
+      var quem = ((nome && nome.value) || '').trim();
+      status.textContent = 'Enviando…'; status.className = 'msg';
+      window.API.recadoEnviar(estado.token, quem, texto).then(function (r) {
+        if (r && r.ok) {
+          status.textContent = C.mural.sucesso; status.className = 'msg msg--ok';
+          if (msg) msg.value = '';
+        } else {
+          status.textContent = C.mural.erro; status.className = 'msg msg--erro';
+        }
+      }).catch(function () { status.textContent = C.mural.erro; status.className = 'msg msg--erro'; });
+    };
   }
 
   // ---- links de trajeto (href vem do conteúdo) ----
@@ -251,54 +316,56 @@
 
     if (p.tipo === 'livre') {
       var inpV = el('input', { class: 'campo', type: 'number', min: '1', placeholder: 'Valor em reais' });
-      var btnPixL = el('button', { class: 'botao', text: C.presentes.pagarPix });
-      var btnCardL = el('button', { class: 'botao botao--secundario', text: C.presentes.pagarCartao });
-      var valorLivre = function () {
-        var v = Number(inpV.value);
-        if (!v || v <= 0) { inpV.focus(); return null; }
-        return v;
-      };
-      var travaL = function (t) { btnPixL.disabled = t; btnCardL.disabled = t; };
-      btnPixL.addEventListener('click', function () {
-        var v = valorLivre(); if (v === null) return;
-        travaL(true); btnPixL.textContent = 'Gerando Pix…';
-        iniciarPix(window.API.contribuirLivre(estado.token, v, '', p.id), function () {
-          travaL(false); btnPixL.textContent = C.presentes.pagarPix;
-        });
-      });
-      btnCardL.addEventListener('click', function () {
-        var v = valorLivre(); if (v === null) return;
-        travaL(true); btnCardL.textContent = 'Abrindo…';
-        iniciarCartao(window.API.cartaoLivre(estado.token, v, '', p.id), function () {
-          travaL(false); btnCardL.textContent = C.presentes.pagarCartao;
-        });
-      });
-      filhos.push(inpV, el('div', { class: 'acoes' }, [btnPixL, btnCardL]));
+      filhos.push(inpV);
+      filhos.push(blocoPagar(
+        function () { var v = Number(inpV.value); if (!v || v <= 0) { inpV.focus(); return null; } return v; },
+        function (v) { return window.API.contribuirLivre(estado.token, v, '', p.id); },
+        function (v) { return window.API.cartaoLivre(estado.token, v, '', p.id); }
+      ));
     } else if (esgotado) {
       filhos.push(el('span', { class: 'selo', text: '✓ Já presenteado' }));
     } else if (reservado) {
-      var res = el('button', { class: 'botao', text: 'Reservado' });
-      res.disabled = true;
+      var res = el('button', { class: 'botao', text: 'Reservado' }); res.disabled = true;
       filhos.push(res);
     } else {
-      var btnPixI = el('button', { class: 'botao', text: C.presentes.pagarPix });
-      var btnCardI = el('button', { class: 'botao botao--secundario', text: C.presentes.pagarCartao });
-      var travaI = function (t) { btnPixI.disabled = t; btnCardI.disabled = t; };
-      btnPixI.addEventListener('click', function () {
-        travaI(true); btnPixI.textContent = 'Gerando Pix…';
-        iniciarPix(window.API.presenteReservar(estado.token, p.id, ''), function () {
-          travaI(false); btnPixI.textContent = C.presentes.pagarPix;
-        });
-      });
-      btnCardI.addEventListener('click', function () {
-        travaI(true); btnCardI.textContent = 'Abrindo…';
-        iniciarCartao(window.API.cartaoItem(estado.token, p.id, ''), function () {
-          travaI(false); btnCardI.textContent = C.presentes.pagarCartao;
-        });
-      });
-      filhos.push(el('div', { class: 'acoes' }, [btnPixI, btnCardI]));
+      filhos.push(blocoPagar(
+        function () { return true; }, // item não tem valor a validar
+        function () { return window.API.presenteReservar(estado.token, p.id, ''); },
+        function () { return window.API.cartaoItem(estado.token, p.id, ''); }
+      ));
     }
     return el('div', { class: 'card-presente' + (esgotado ? ' esgotado' : '') }, filhos);
+  }
+
+  /**
+   * Bloco de pagamento: mostra só "Quero presentear". Ao clicar, revela a
+   * escolha Pix/Cartão (pedido da Mariana: não expor os dois botões de cara).
+   * getValor() devolve o valor (livre) ou true (item); null aborta.
+   */
+  function blocoPagar(getValor, pixFn, cartaoFn) {
+    var wrap = el('div', { class: 'card-acao' });
+    var btnAbrir = el('button', { class: 'botao', type: 'button', text: C.presentes.botaoPresentear });
+    wrap.appendChild(btnAbrir);
+
+    btnAbrir.addEventListener('click', function () {
+      var v = getValor();
+      if (v === null) return; // valor inválido (contribuição livre)
+      wrap.innerHTML = '';
+      wrap.appendChild(el('p', { class: 'metodo-label', text: C.presentes.escolhaMetodo }));
+      var btnPix = el('button', { class: 'botao', type: 'button', text: C.presentes.pagarPix });
+      var btnCard = el('button', { class: 'botao botao--secundario', type: 'button', text: C.presentes.pagarCartao });
+      var trava = function (t) { btnPix.disabled = t; btnCard.disabled = t; };
+      btnPix.addEventListener('click', function () {
+        trava(true); btnPix.textContent = 'Gerando Pix…';
+        iniciarPix(pixFn(v), function () { trava(false); btnPix.textContent = C.presentes.pagarPix; });
+      });
+      btnCard.addEventListener('click', function () {
+        trava(true); btnCard.textContent = 'Abrindo…';
+        iniciarCartao(cartaoFn(v), function () { trava(false); btnCard.textContent = C.presentes.pagarCartao; });
+      });
+      wrap.appendChild(el('div', { class: 'acoes' }, [btnPix, btnCard]));
+    });
+    return wrap;
   }
 
   // ---- fluxo CARTÃO (redireciona pro Checkout Pro do Mercado Pago) ----
@@ -434,5 +501,29 @@
       window.Sessao.limpar();
       location.reload();
     });
+
+    // ---- Lightbox de fotos ----
+    var modal = $('#foto-modal');
+    var x = $('#foto-fechar'), prev = $('#foto-prev'), next = $('#foto-next');
+    if (x) x.addEventListener('click', fecharFoto);
+    if (prev) prev.addEventListener('click', function () { passarFoto(-1); });
+    if (next) next.addEventListener('click', function () { passarFoto(1); });
+    if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) fecharFoto(); });
+    document.addEventListener('keydown', function (e) {
+      if (!modal || modal.hidden) return;
+      if (e.key === 'Escape') fecharFoto();
+      else if (e.key === 'ArrowLeft') passarFoto(-1);
+      else if (e.key === 'ArrowRight') passarFoto(1);
+    });
+    // swipe no celular
+    var x0 = null;
+    if (modal) {
+      modal.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      modal.addEventListener('touchend', function (e) {
+        if (x0 === null) return;
+        var dx = e.changedTouches[0].clientX - x0; x0 = null;
+        if (Math.abs(dx) > 40) passarFoto(dx < 0 ? 1 : -1);
+      }, { passive: true });
+    }
   });
 })();

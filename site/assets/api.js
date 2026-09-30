@@ -73,6 +73,10 @@
     cartaoLivre: function (token, valor, mensagem, presenteId) {
       return post({ action: 'contribuirLivre', token: token, valor: valor, mensagem: mensagem || '', presenteId: presenteId || 'livre', metodo: 'cartao' }, false);
     },
-    pagamentoStatus: function (paymentId) { return get('pagamentoStatus', { paymentId: paymentId }); }
+    pagamentoStatus: function (paymentId) { return get('pagamentoStatus', { paymentId: paymentId }); },
+    // Mural de recados (com retry: é idempotente o suficiente e não gera cobrança)
+    recadoEnviar: function (token, nome, mensagem) {
+      return post({ action: 'recadoEnviar', token: token, nome: nome || '', mensagem: mensagem || '' }, true);
+    }
   };
 })();

@@ -57,6 +57,11 @@ var ABAS = {
   CONFIG: {
     nome: 'Config',
     colunas: ['chave', 'valor']
+  },
+  RECADOS: {
+    nome: 'Recados',
+    // Mural privado: os convidados escrevem, o casal lê aqui na planilha.
+    colunas: ['id', 'nome', 'mensagem', 'convite', 'criado_em']
   }
 };
 
@@ -154,6 +159,7 @@ function setupPlanilha() {
   aba(ABAS.PRESENTES);
   aba(ABAS.PAGAMENTOS);
   aba(ABAS.CONFIG);
+  aba(ABAS.RECADOS);
 
   // Config inicial (valores podem ser editados na planilha depois).
   var cfg = lerTabela(ABAS.CONFIG);

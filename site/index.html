@@ -47,7 +47,6 @@
   <div id="hub">
     <header id="capa" class="capa container">
       <img class="monograma" src="assets/monograma.svg" alt="Monograma M F">
-      <p data-bind="evento.dataTexto">·</p>
       <h1 data-bind="casal.titulo">·</h1>
       <div id="contagem" class="contagem"></div>
     </header>
@@ -56,13 +55,8 @@
       <details id="historia" class="secao">
         <summary><span class="secao-titulo" data-bind="secoes.historia.titulo">·</span></summary>
         <div class="secao-corpo">
-          <p data-bind="secoes.historia.corpo">·</p>
-          <div class="galeria">
-            <img src="assets/fotos/foto1.jpg" alt="Felipe e Mariana" loading="lazy" width="825" height="1100">
-            <img src="assets/fotos/foto2.jpg" alt="Felipe e Mariana" loading="lazy" width="825" height="1100">
-            <img src="assets/fotos/foto3.jpg" alt="Felipe e Mariana" loading="lazy" width="825" height="1100">
-            <img src="assets/fotos/foto4.jpg" alt="Felipe e Mariana" loading="lazy" width="825" height="1100">
-          </div>
+          <div data-bind-paragrafos="secoes.historia.paragrafos"></div>
+          <div id="historia-fotos" class="timeline" aria-label="Linha do tempo com fotos"></div>
         </div>
       </details>
 
@@ -73,14 +67,8 @@
           <p><strong data-bind="evento.dataTexto">·</strong></p>
           <p data-bind="evento.horario">·</p>
           <p data-bind="evento.local">·</p>
-        </div>
-      </details>
-
-      <details id="chegar" class="secao">
-        <summary><span class="secao-titulo" data-bind="secoes.comoChegar.titulo">·</span></summary>
-        <div class="secao-corpo">
-          <p data-bind="secoes.comoChegar.corpo">·</p>
           <p data-bind="evento.endereco">·</p>
+          <p class="lembrete" data-bind="secoes.quandoOnde.estacionamento">·</p>
           <p class="acoes">
             <a id="link-maps" class="botao botao--secundario" target="_blank" rel="noopener">Google Maps</a>
             <a id="link-waze" class="botao botao--secundario" target="_blank" rel="noopener">Waze</a>
@@ -91,6 +79,7 @@
       <details id="dress" class="secao">
         <summary><span class="secao-titulo" data-bind="secoes.dressCode.titulo">·</span></summary>
         <div class="secao-corpo">
+          <p class="dress-destaque" data-bind="secoes.dressCode.destaque">·</p>
           <p data-bind="secoes.dressCode.corpo">·</p>
         </div>
       </details>
@@ -127,10 +116,18 @@
         </div>
       </details>
 
+      <!-- ---- Recados + mural ---- -->
       <details id="recados" class="secao">
         <summary><span class="secao-titulo" data-bind="secoes.recados.titulo">·</span></summary>
         <div class="secao-corpo">
-          <p data-bind="secoes.recados.corpo">·</p>
+          <div data-bind-paragrafos="secoes.recados.paragrafos"></div>
+          <form id="recado-form" class="mural">
+            <label data-bind="mural.titulo">·</label>
+            <input id="recado-nome" class="campo" type="text" autocomplete="name">
+            <textarea id="recado-msg" class="campo" rows="3"></textarea>
+            <button class="botao" type="submit" data-bind="mural.botao">·</button>
+            <div id="recado-status" class="msg"></div>
+          </form>
         </div>
       </details>
     </main>
@@ -141,11 +138,22 @@
   </div>
 
   <!-- ============ Modal PIX ============ -->
-  <div id="pix-modal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:1rem;">
+  <div id="pix-modal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:1rem;z-index:20;">
     <div style="background:var(--cor-fundo);border-radius:var(--raio);padding:1.2rem;max-width:360px;width:100%;">
       <div id="pix-conteudo"></div>
       <button id="pix-fechar" class="botao botao--secundario" style="margin-top:1rem;width:100%;">Fechar</button>
     </div>
+  </div>
+
+  <!-- ============ Lightbox de fotos (linha do tempo) ============ -->
+  <div id="foto-modal" class="foto-modal" hidden>
+    <button id="foto-fechar" class="foto-x" aria-label="Fechar">✕</button>
+    <button id="foto-prev" class="foto-nav" aria-label="Foto anterior">‹</button>
+    <figure class="foto-fig">
+      <img id="foto-img" alt="Felipe e Mariana">
+      <figcaption id="foto-ano"></figcaption>
+    </figure>
+    <button id="foto-next" class="foto-nav" aria-label="Próxima foto">›</button>
   </div>
 
   <!-- ordem importa: config e conteúdo antes dos módulos -->

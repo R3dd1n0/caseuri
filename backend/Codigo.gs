@@ -14,7 +14,8 @@ var ROTAS = {
   presentesListar:  acaoPresentesListar,  // Presentes.gs
   presenteReservar: acaoPresenteReservar, // Presentes.gs
   contribuirLivre:  acaoContribuirLivre,  // Presentes.gs
-  pagamentoStatus:  acaoPagamentoStatus   // Presentes.gs
+  pagamentoStatus:  acaoPagamentoStatus,  // Presentes.gs
+  recadoEnviar:     acaoRecadoEnviar      // Recados.gs
 };
 
 /** GET: ações de leitura (query string). */
