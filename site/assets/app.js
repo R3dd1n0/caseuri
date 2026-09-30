@@ -78,23 +78,30 @@
       ev.preventDefault();
       var nome = $('#gate-nome').value.trim();
       var msg = $('#gate-msg');
+      var botao = $('#gate-botao');
       if (!nome) return;
-      msg.textContent = '…';
+      msg.textContent = 'Entrando…'; msg.className = 'msg';
+      botao.disabled = true;
+      var demorou = 'O servidor demorou a responder. Toque em Entrar de novo.';
       window.API.identificar(nome).then(function (r) {
         if (r && r.ok && r.resultado === 'unico') {
           window.Sessao.salvar(r.token);
           aplicarSessao(r.token, r);
           entrarNoHub();
         } else if (r && r.resultado === 'multiplo') {
-          msg.textContent = C.gate.pedirSobrenome;
-          msg.className = 'msg msg--erro';
+          msg.textContent = C.gate.pedirSobrenome; msg.className = 'msg msg--erro';
+          botao.disabled = false;
+        } else if (r && r.ok === false && r.erro === 'nome_nao_encontrado') {
+          msg.textContent = C.gate.erroNaoEncontrado; msg.className = 'msg msg--erro';
+          botao.disabled = false;
         } else {
-          msg.textContent = C.gate.erroNaoEncontrado;
-          msg.className = 'msg msg--erro';
+          // resposta inesperada/incompleta (ex.: servidor acordando)
+          msg.textContent = demorou; msg.className = 'msg msg--erro';
+          botao.disabled = false;
         }
       }).catch(function () {
-        msg.textContent = 'Erro de conexão. Tente de novo.';
-        msg.className = 'msg msg--erro';
+        msg.textContent = demorou; msg.className = 'msg msg--erro';
+        botao.disabled = false;
       });
     });
   }

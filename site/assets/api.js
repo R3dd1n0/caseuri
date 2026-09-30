@@ -13,19 +13,24 @@
     return u;
   }
 
-  // Re-tenta em falha de rede/JSON (o Apps Script às vezes "acorda" devagar).
+  // Re-tenta em falha de rede/JSON/resposta vazia (o Apps Script "acorda"
+  // devagar no 1º acesso e às vezes devolve corpo vazio nesse meio-tempo).
   function comRetry(fn, tentativas) {
-    tentativas = tentativas || 3;
+    tentativas = tentativas || 5;
     return fn().catch(function (e) {
       if (tentativas <= 1) throw e;
-      return new Promise(function (res) { setTimeout(res, 600); })
+      return new Promise(function (res) { setTimeout(res, 800); })
         .then(function () { return comRetry(fn, tentativas - 1); });
     });
   }
 
+  // Trata corpo vazio como falha (dispara o retry) em vez de virar "{}".
   function lerJson(r) {
     if (!r.ok) throw new Error('http_' + r.status);
-    return r.json();
+    return r.text().then(function (t) {
+      if (!t || !t.trim()) throw new Error('resposta_vazia');
+      return JSON.parse(t);
+    });
   }
 
   function get(action, params) {
