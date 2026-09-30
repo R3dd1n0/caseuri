@@ -59,7 +59,7 @@ function mpCriarPagamentoPix(valor, descricao, externalReference) {
  */
 function mpCriarPreferenciaCartao(valor, descricao, externalReference) {
   var token = configSegredo('MP_ACCESS_TOKEN');
-  var site = configValor('SITE_URL', 'https://r3dd1n0.github.io/caseuri/');
+  var site = configValor('SITE_URL', 'https://felipemariana.com.br/');
   var volta = site + (site.indexOf('?') < 0 ? '?' : '&') + 'pgto=cartao';
 
   var body = {
