@@ -5,7 +5,7 @@
 `marcador_taca.py` — disco de veludo com pétalas (Ø 70 mm, vales Ø 64 mm,
 furo Ø 13 mm, fenda de 2 mm no topo), **contorno bordado em satin** e o nome
 (**sempre dois nomes**, "Nome Sobrenome") seguindo a curva. Fonte definitiva:
-**Magnolia tamed**; linha **verde-oliva** (`--cor`).
+**Magnolia KOR** (mesmo desenho da Magnolia tamed, mas numa camada só); linha **verde-oliva** (`--cor`).
 
 ```sh
 python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
@@ -33,8 +33,12 @@ python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
   `acentos.py` monta essas letras numa cópia da fonte ("Magnolia tamed PT"):
   agudo copiado do "é", til desenhado em ponto corrido triplo. Confira a
   prévia de nomes com maiúscula acentuada.
-- Fontes bicolores (Magnolia tamed) saem numa linha só: as trocas de cor viram
-  cortes de linha, sem parada da máquina.
+- Fontes bicolores (ex.: Magnolia tamed) saem numa linha só: as trocas de cor
+  viram cortes de linha. Mas cada traço delas é feito de duas metades, cada uma
+  com sua base — no 1º teste real (30/09) a letra saiu cheia demais. Por isso a
+  fonte padrão passou a ser a Magnolia KOR (uma camada, ~60% menos pontos).
+- Letras SEM reforço de veludo por padrão (o 1º teste encheu demais as letras).
+  Para tecido com pelo: `--veludo` (base extra) e/ou `--engrossar 0.1`.
 - `--fonte "Allegria 55"`, `--angulo -15`
   (padrão, como no molde) ou `-90` (nome embaixo), `--altura 7` (mm, maiúscula),
   `--borda 1.6` (mm), `--margem 2` (mm).

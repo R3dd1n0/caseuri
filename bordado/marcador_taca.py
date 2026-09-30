@@ -137,7 +137,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--inkstitch', required=True, help='pasta do código-fonte do Ink/Stitch (com fonts/)')
     ap.add_argument('--nomes', required=True, help='um convidado por linha: "Nome Sobrenome"')
-    ap.add_argument('--fonte', default='Magnolia tamed')
+    ap.add_argument('--fonte', default='Magnolia KOR')
     ap.add_argument('--angulo', type=float, default=-15.0)
     ap.add_argument('--raio', type=float, default=28.0)
     ap.add_argument('--altura', type=float, default=7.0, help='altura máxima da maiúscula M (mm)')
@@ -146,9 +146,10 @@ def main():
     ap.add_argument('--borda', type=float, default=1.6, help='largura do satin do contorno (mm)')
     ap.add_argument('--margem', type=float, default=2.0, help='folga mínima entre o nome e o contorno (mm)')
     ap.add_argument('--espaco', type=float, default=0, help='espaço extra entre palavras (unidades da fonte)')
-    ap.add_argument('--engrossar', type=float, default=0.12,
+    ap.add_argument('--engrossar', type=float, default=0.0,
                     help='mm mínimos somados a cada lado das colunas de satin das letras (veludo)')
-    ap.add_argument('--sem-veludo', action='store_true', help='não reforçar o underlay das letras')
+    ap.add_argument('--veludo', action='store_true',
+                    help='reforça a base das letras (contorno + centro) para tecido com pelo')
     ap.add_argument('--cor', default='#6B7B2E', help='cor da linha (verde-oliva)')
     ap.add_argument('--fundo', default='#740C23', help='cor do veludo na prévia')
     ap.add_argument('--saida', default='saida-taca')
@@ -213,13 +214,13 @@ def main():
         # letras: reduz na proporção da escala. Mas no veludo os traços finos
         # somem no pelo, então garante um mínimo por lado.
         fator = min(1.0, escala / fonte.min_scale)
-        minimo = 0.0 if args.sem_veludo else args.engrossar
+        minimo = args.engrossar
         for no in grupo.iter():
             if no.get(NS + 'satin_column') != 'True':
                 continue
             pc = float(no.get(NS + 'pull_compensation_mm') or 0)
             no.set(NS + 'pull_compensation_mm', f'{max(pc * fator, minimo):.3f}')
-            if not args.sem_veludo:
+            if args.veludo:
                 no.set(NS + 'contour_underlay', 'True')
                 no.set(NS + 'center_walk_underlay', 'True')
 
