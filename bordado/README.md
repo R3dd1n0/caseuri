@@ -12,10 +12,8 @@ python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
   --nomes bordado/convidados.txt --saida bordado/saida-taca
 ```
 
-- **Formato**: cada convidado sai em `.u01` (formato nativo da Barudan) e
-  `.dst` (Tajima). **EMB não dá para gerar**: é o arquivo de trabalho,
-  fechado, do programa Wilcom EmbroideryStudio, não um formato de máquina.
-  Quem usa Wilcom abre o `.dst`/`.u01` nele e salva como EMB.
+- **Formato**: `.dst` (Tajima) — testado e lido pela Barudan. (EMB é o arquivo
+  de trabalho fechado do Wilcom e não dá para gerar; U01 foi dispensado.)
 - **Um único arquivo por convidado, uma cor só**: primeiro o nome, corte de
   linha, depois o contorno (satin de 1,6 mm com base de ponto corrido).
 - A borda externa do satin fica **exatamente na linha de corte**: depois de
