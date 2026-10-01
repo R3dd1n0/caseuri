@@ -271,7 +271,8 @@ details.bloco[open] .bloco-chevron { transform: rotate(-135deg); margin-top: 0.9
 /* Nota de estacionamento: centralizada (seletor forte p/ vencer `.bloco p`). */
 .bloco p.estacionamento {
   font-family: var(--fonte-titulo); color: var(--bordo);
-  font-size: 1.4rem; line-height: 1.32; text-align: center; margin: 1.3rem 0 1.6rem; max-width: none;
+  font-size: clamp(1.8rem, 6vw, 2.1rem); line-height: 1.3; text-align: center;
+  margin: 1.4rem 0 1.7rem; max-width: none;
 }
 .acoes { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
 .acoes .botao { flex: 1 1 42%; }
