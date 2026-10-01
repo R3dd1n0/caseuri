@@ -84,7 +84,8 @@ a { color: inherit; }
   border-radius: 10px;
   background: var(--bordo);
   color: var(--creme);
-  font: inherit; font-weight: 500;
+  font: inherit; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .07em;
   cursor: pointer; text-align: center;
   transition: opacity .15s ease, background .15s ease;
 }
@@ -196,9 +197,10 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 }
 .capa-nav a {
   color: var(--creme); text-decoration: none;
-  font-family: var(--fonte-titulo); font-size: clamp(1.45rem, 5vw, 1.95rem); line-height: 1;
+  font-family: var(--fonte-corpo); text-transform: uppercase; letter-spacing: .12em;
+  font-size: .78rem; font-weight: 500; line-height: 1;
   border: 1px solid rgba(255,255,255,.5); border-radius: 999px;
-  padding: .5rem 1.15rem; background: rgba(255,255,255,.07);
+  padding: .62rem 1.1rem; background: rgba(255,255,255,.07);
 }
 .capa-nav a:hover { background: rgba(255,255,255,.16); }
 
@@ -288,13 +290,14 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 
 /* ---- QUANDO & ONDE ---- */
 .dados { text-align: center; margin: 0 0 1rem; }
-.dados p { margin: .15rem 0; font-size: 1.05rem; }
+.dados p { margin: .25rem 0; font-size: .92rem; text-transform: uppercase; letter-spacing: .06em; }
 .dados strong { font-weight: 700; }
 /* Nota de estacionamento: centralizada (seletor forte p/ vencer `.bloco p`). */
 .bloco p.estacionamento {
-  font-family: var(--fonte-titulo); color: var(--bordo);
-  font-size: clamp(1.8rem, 6vw, 2.1rem); line-height: 1.3; text-align: center;
-  margin: 1.4rem 0 1.7rem; max-width: none;
+  font-family: var(--fonte-corpo); color: var(--tinta-suave);
+  text-transform: uppercase; letter-spacing: .1em; font-weight: 500;
+  font-size: .9rem; line-height: 1.7; text-align: center;
+  margin: 1.4rem auto 1.7rem; max-width: 34ch;
 }
 .acoes { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
 .acoes .botao { flex: 1 1 42%; }
@@ -305,16 +308,9 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 
 /* ---- DRESS CODE ---- */
 .bloco--dress { overflow: hidden; }
-.bloco--dress .bloco-inner { padding-left: 2.8rem; padding-right: 2.8rem; }
-.bloco--dress::before, .bloco--dress::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: 30px;
-  background: url('ill/lace.png') center/contain repeat-y; opacity: .9;
-}
-.bloco--dress::before { left: 6px; }
-.bloco--dress::after { right: 6px; transform: scaleX(-1); }
 .dress-destaque {
-  font-size: 1.15rem; font-weight: 700; color: var(--creme);
-  text-align: center; margin: 0 0 .8rem; letter-spacing: .02em;
+  font-size: 1.05rem; font-weight: 700; color: var(--creme);
+  text-align: center; margin: 0 0 1rem; letter-spacing: .14em; text-transform: uppercase;
 }
 .bloco--dress .corpo { text-align: center; color: rgba(255,255,255,.92); max-width: 30ch; margin: 0 auto; }
 .rotulo--claro { color: rgba(255,255,255,.78); margin: 1.6rem 0 .2rem; }
@@ -342,12 +338,16 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
   pointer-events: none;
 }
 .envelope-mono { width: 32px; height: auto; margin: 0 auto; }
-.envelope-titulo { color: var(--bordo); font-size: clamp(1.1rem, 4.6vw, 1.5rem); line-height: 1.02; }
-.rsvp-grupo { text-align: center; margin: 0 0 1rem; }
+.envelope-titulo {
+  font-family: var(--fonte-corpo); color: var(--bordo);
+  text-transform: uppercase; letter-spacing: .1em; font-weight: 600;
+  font-size: clamp(.72rem, 2.9vw, .9rem); line-height: 1.3;
+}
+.rsvp-grupo { text-align: center; margin: 0 0 1rem; text-transform: uppercase; letter-spacing: .06em; font-size: .9rem; }
 .pessoa-rsvp { display: grid; gap: 0.5rem; padding: 1rem 0; border-bottom: 1px solid var(--linha); }
-.pessoa-rsvp strong { font-size: 1.1rem; }
+.pessoa-rsvp strong { font-size: 1rem; text-transform: uppercase; letter-spacing: .05em; }
 .rsvp-opcoes { display: flex; gap: 1.4rem; }
-.rsvp-opcoes label { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0; color: var(--tinta); }
+.rsvp-opcoes label { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0; color: var(--tinta); text-transform: uppercase; letter-spacing: .05em; font-size: .9rem; }
 #rsvp-form .botao { width: 100%; margin-top: 1.1rem; }
 .selo { font-size: 0.78rem; color: var(--tinta-suave); }
 
@@ -360,12 +360,12 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
   display: flex; flex-direction: column; gap: 0.45rem;
 }
 .card-presente.esgotado { opacity: 0.55; }
-.card-presente strong { font-size: 1.12rem; line-height: 1.25; color: var(--tinta); }
+.card-presente strong { font-size: 1.02rem; line-height: 1.3; color: var(--tinta); text-transform: uppercase; letter-spacing: .04em; }
 .card-presente .campo { margin-top: .3rem; }
 .card-acao { margin-top: auto; padding-top: .4rem; }
 .card-acao .botao { width: 100%; }
 .card-acao .acoes .botao { flex: 1 1 42%; }
-.metodo-label { font-size: 0.85rem; color: var(--tinta-suave); margin: 0 0 0.45rem; }
+.metodo-label { font-size: 0.78rem; color: var(--tinta-suave); margin: 0 0 0.45rem; text-transform: uppercase; letter-spacing: .08em; }
 #presentes-obrigado { text-align: center; color: var(--sucesso); margin-bottom: 1rem; }
 #presentes-intro { text-align: center; }
 #presentes-msg { text-align: center; }
