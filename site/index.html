@@ -7,7 +7,7 @@
   <title>Casamento</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/base.css">
 
   <!-- Favicon (ícone da aba) -->
@@ -29,10 +29,10 @@
 </head>
 <body>
 
-  <!-- ============ GATE (landing por nome) ============ -->
+  <!-- ============ GATE (entrada por nome) ============ -->
   <div id="gate" hidden>
     <div class="caixa">
-      <img class="monograma" src="assets/monograma.svg" alt="Monograma M F">
+      <img class="monograma" src="assets/monograma-creme.svg" alt="Monograma M F">
       <h1 data-bind="gate.titulo">·</h1>
       <p data-bind="gate.instrucao">·</p>
       <form id="gate-form">
@@ -43,109 +43,156 @@
     </div>
   </div>
 
-  <!-- ============ HUB (conteúdo do site) ============ -->
+  <!-- ============ HUB (site) ============ -->
   <div id="hub">
-    <header id="capa" class="capa container">
-      <img class="monograma" src="assets/monograma.svg" alt="Monograma M F">
-      <h1 data-bind="casal.titulo">·</h1>
+
+    <!-- navbar fixa (aparece depois da capa) -->
+    <nav id="navbar" class="navbar" aria-label="Navegação">
+      <button class="marca" id="nav-topo" type="button" aria-label="Voltar ao topo">
+        <img src="assets/monograma-creme.svg" alt="">
+      </button>
+      <div class="navbar-links">
+        <a href="#historia">Nossa história</a>
+        <a href="#quando">Quando e onde</a>
+        <a href="#dress">Dress code</a>
+        <a href="#rsvp">Presença</a>
+        <a href="#presentes">Presentes</a>
+      </div>
+    </nav>
+
+    <!-- ============ CAPA ============ -->
+    <header id="capa" class="capa">
+      <img class="monograma" src="assets/monograma-creme.svg" alt="Monograma M F">
+      <div class="capa-titulo">Save our Date</div>
+      <div class="capa-moldura">
+        <img src="assets/fotos/capa.jpg" alt="Felipe e Mariana">
+        <div class="capa-data">12.11.2026</div>
+      </div>
       <div id="contagem" class="contagem"></div>
+      <nav class="capa-nav" aria-label="Seções">
+        <a href="#historia">Nossa história</a>
+        <a href="#quando">Quando e onde</a>
+        <a href="#dress">Dress Code</a>
+        <a href="#rsvp">Confirme sua presença</a>
+        <a href="#presentes">Lista de presentes</a>
+      </nav>
     </header>
 
-    <main class="container">
-      <details id="historia" class="secao">
-        <summary><span class="secao-titulo" data-bind="secoes.historia.titulo">·</span></summary>
-        <div class="secao-corpo">
-          <div data-bind-paragrafos="secoes.historia.paragrafos"></div>
-          <div id="historia-fotos" class="timeline" aria-label="Linha do tempo com fotos"></div>
+    <main>
+      <!-- ---- NOSSA HISTÓRIA ---- -->
+      <section id="historia" class="bloco bloco--historia">
+        <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.historia.titulo">·</h2>
+          <div class="historia-texto" data-bind-paragrafos="secoes.historia.paragrafos"></div>
         </div>
-      </details>
+      </section>
 
-      <details id="quando" class="secao" open>
-        <summary><span class="secao-titulo" data-bind="secoes.quandoOnde.titulo">·</span></summary>
-        <div class="secao-corpo">
-          <p data-bind="secoes.quandoOnde.corpo">·</p>
-          <p><strong data-bind="evento.dataTexto">·</strong></p>
-          <p data-bind="evento.horario">·</p>
-          <p data-bind="evento.local">·</p>
-          <p data-bind="evento.endereco">·</p>
-          <p class="lembrete" data-bind="secoes.quandoOnde.estacionamento">·</p>
-          <p class="acoes">
+      <!-- ---- SLIDESHOW (nossas fotos passando) ---- -->
+      <section id="slideshow" class="bloco bloco--creme">
+        <div class="bloco-inner">
+          <p class="rotulo">nós, ao longo do tempo</p>
+          <div id="slideshow-palco" class="slideshow-palco">
+            <div id="slideshow-fotos"></div>
+            <button class="slide-nav slide-prev" id="slide-prev" type="button" aria-label="Foto anterior">‹</button>
+            <button class="slide-nav slide-next" id="slide-next" type="button" aria-label="Próxima foto">›</button>
+          </div>
+          <div id="slideshow-dots" class="slideshow-dots"></div>
+        </div>
+      </section>
+
+      <!-- ---- QUANDO & ONDE ---- -->
+      <section id="quando" class="bloco bloco--creme">
+        <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.quandoOnde.titulo">·</h2>
+          <img class="ill ill-venue" src="assets/ill/venue.png" alt="Ilustração do espaço da festa">
+          <div class="dados">
+            <p>Data: <strong data-bind="evento.dataTexto">·</strong></p>
+            <p>Horário: <strong data-bind="evento.horario">·</strong></p>
+            <p>Local: <strong data-bind="evento.local">·</strong></p>
+            <p data-bind="evento.endereco">·</p>
+          </div>
+          <p class="estacionamento" data-bind="secoes.quandoOnde.estacionamento">·</p>
+          <div class="acoes">
             <a id="link-maps" class="botao botao--secundario" target="_blank" rel="noopener">Google Maps</a>
             <a id="link-waze" class="botao botao--secundario" target="_blank" rel="noopener">Waze</a>
-          </p>
+          </div>
+          <img class="foto-jardim" src="assets/fotos/jardim.jpg" alt="Felipe e Mariana">
         </div>
-      </details>
+      </section>
 
-      <details id="dress" class="secao">
-        <summary><span class="secao-titulo" data-bind="secoes.dressCode.titulo">·</span></summary>
-        <div class="secao-corpo">
+      <!-- ---- DRESS CODE ---- -->
+      <section id="dress" class="bloco bloco--bordo bloco--dress">
+        <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.dressCode.titulo">·</h2>
           <p class="dress-destaque" data-bind="secoes.dressCode.destaque">·</p>
-          <p data-bind="secoes.dressCode.corpo">·</p>
+          <p class="corpo" data-bind="secoes.dressCode.corpo">·</p>
         </div>
-      </details>
-
-      <details id="info" class="secao">
-        <summary><span class="secao-titulo" data-bind="secoes.informacoes.titulo">·</span></summary>
-        <div class="secao-corpo">
-          <p data-bind="secoes.informacoes.corpo">·</p>
-        </div>
-      </details>
+      </section>
 
       <!-- ---- RSVP ---- -->
-      <details id="rsvp" class="secao">
-        <summary><span class="secao-titulo" data-bind="rsvp.titulo">·</span></summary>
-        <div class="secao-corpo">
-          <p>Convite: <strong id="rsvp-grupo">·</strong></p>
+      <section id="rsvp" class="bloco bloco--creme">
+        <div class="bloco-inner">
+          <img class="ill ill-envelope" src="assets/ill/envelope.png" alt="">
+          <h2 class="script titulo-secao" data-bind="rsvp.titulo">·</h2>
+          <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
           <form id="rsvp-form">
             <div id="rsvp-pessoas"></div>
             <button class="botao" type="submit">Salvar resposta</button>
             <div id="rsvp-msg" class="msg"></div>
           </form>
           <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
+          <img class="ill ill-tower" src="assets/ill/tower.png" alt="">
         </div>
-      </details>
+      </section>
 
-      <!-- ---- Presentes ---- -->
-      <details id="presentes" class="secao">
-        <summary><span class="secao-titulo" data-bind="presentes.titulo">·</span></summary>
-        <div class="secao-corpo">
-          <p id="presentes-obrigado" class="msg msg--ok" hidden></p>
-          <p data-bind="presentes.intro">·</p>
+      <!-- ---- PRESENTES ---- -->
+      <section id="presentes" class="bloco bloco--creme">
+        <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="presentes.titulo">·</h2>
+          <p id="presentes-obrigado" hidden></p>
+          <p id="presentes-intro" data-bind="presentes.intro">·</p>
           <div id="presentes-lista" class="grade-presentes"></div>
           <div id="presentes-msg" class="msg"></div>
         </div>
-      </details>
+      </section>
 
-      <!-- ---- Recados + mural ---- -->
-      <details id="recados" class="secao">
-        <summary><span class="secao-titulo" data-bind="secoes.recados.titulo">·</span></summary>
-        <div class="secao-corpo">
+      <!-- ---- RECADOS (bordô) ---- -->
+      <section id="recados" class="bloco bloco--bordo bloco--recados">
+        <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.recados.titulo">·</h2>
+          <img class="ill ill-dogs" src="assets/ill/dogs.png" alt="">
           <div data-bind-paragrafos="secoes.recados.paragrafos"></div>
+        </div>
+      </section>
+
+      <!-- ---- MURAL (creme) ---- -->
+      <section id="mural" class="bloco bloco--creme">
+        <div class="bloco-inner">
+          <h3 id="mural-titulo" class="script" data-bind="mural.titulo">·</h3>
           <form id="recado-form" class="mural">
-            <label data-bind="mural.titulo">·</label>
             <input id="recado-nome" class="campo" type="text" autocomplete="name">
-            <textarea id="recado-msg" class="campo" rows="3"></textarea>
+            <textarea id="recado-msg" class="campo" rows="4"></textarea>
             <button class="botao" type="submit" data-bind="mural.botao">·</button>
             <div id="recado-status" class="msg"></div>
           </form>
         </div>
-      </details>
+      </section>
     </main>
 
-    <footer class="rodape container">
+    <footer class="rodape">
       <a href="#" id="sair">Sair</a>
     </footer>
   </div>
 
   <!-- ============ Modal PIX ============ -->
-  <div id="pix-modal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:1rem;z-index:20;">
-    <div style="background:var(--cor-fundo);border-radius:var(--raio);padding:1.2rem;max-width:360px;width:100%;">
+  <div id="pix-modal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:1rem;z-index:50;">
+    <div style="background:var(--creme);border-radius:var(--raio);padding:1.2rem;max-width:360px;width:100%;">
       <div id="pix-conteudo"></div>
       <button id="pix-fechar" class="botao botao--secundario" style="margin-top:1rem;width:100%;">Fechar</button>
     </div>
   </div>
 
-  <!-- ============ Lightbox de fotos (linha do tempo) ============ -->
+  <!-- ============ Lightbox de fotos ============ -->
   <div id="foto-modal" class="foto-modal" hidden>
     <button id="foto-fechar" class="foto-x" aria-label="Fechar">✕</button>
     <button id="foto-prev" class="foto-nav" aria-label="Foto anterior">‹</button>

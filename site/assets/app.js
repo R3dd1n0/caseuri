@@ -115,7 +115,7 @@
     $('#hub').classList.add('visivel');
     hydrateLinks();
     ocultarSecoesVazias();
-    montarHistoria();
+    montarSlideshow();
     iniciarContagem();
     montarRsvp();
     carregarPresentes();
@@ -134,26 +134,50 @@
     });
   }
 
-  // ---- Linha do tempo de fotos (dentro de "Nossa história") ----
+  // ---- Slideshow de fotos ("nossas fotos passando") ----
   var galeriaFotos = [];
   var fotoAtual = 0;
-  function montarHistoria() {
-    var faixa = $('#historia-fotos');
-    if (!faixa) return;
+  var slides = [], slideIdx = 0, slideTimer = null;
+  function montarSlideshow() {
+    var palco = $('#slideshow-fotos');
+    if (!palco) return;
     var fotos = (C.secoes.historia && C.secoes.historia.fotos) || [];
     galeriaFotos = fotos.slice();
-    faixa.innerHTML = '';
+    palco.innerHTML = ''; slides = []; slideIdx = 0;
     fotos.forEach(function (f, i) {
-      var btn = el('button', { class: 'timeline-item', type: 'button', 'aria-label': 'Foto de ' + f.ano });
-      btn.appendChild(el('img', {
-        src: 'assets/historia/thumb-' + f.img + '.jpg',
-        alt: 'Felipe e Mariana em ' + f.ano, loading: 'lazy'
-      }));
-      btn.appendChild(el('span', { class: 'timeline-ano', text: f.ano }));
-      btn.addEventListener('click', function () { abrirFoto(i); });
-      faixa.appendChild(btn);
+      var im = el('img', {
+        class: 'slide' + (i === 0 ? ' ativo' : ''),
+        src: 'assets/historia/full-' + f.img + '.jpg',
+        alt: 'Felipe e Mariana em ' + f.ano,
+        loading: i < 2 ? 'eager' : 'lazy'
+      });
+      im.addEventListener('click', function () { abrirFoto(i); });
+      palco.appendChild(im); slides.push(im);
     });
-    mostrar(faixa, fotos.length > 0);
+    var dots = $('#slideshow-dots');
+    if (dots) {
+      dots.innerHTML = '';
+      fotos.forEach(function (_, i) {
+        var b = el('button', { type: 'button', class: 'dot' + (i === 0 ? ' ativo' : ''), 'aria-label': 'Foto ' + (i + 1) });
+        b.addEventListener('click', function () { irSlide(i, true); });
+        dots.appendChild(b);
+      });
+    }
+    mostrar($('#slideshow'), fotos.length > 0);
+    if (fotos.length > 1) reiniciarTimerSlide();
+  }
+  function irSlide(i, acaoUsuario) {
+    if (!slides.length) return;
+    if (slides[slideIdx]) slides[slideIdx].classList.remove('ativo');
+    slideIdx = (i + slides.length) % slides.length;
+    slides[slideIdx].classList.add('ativo');
+    var dots = document.querySelectorAll('#slideshow-dots .dot');
+    for (var k = 0; k < dots.length; k++) dots[k].classList.toggle('ativo', k === slideIdx);
+    if (acaoUsuario) reiniciarTimerSlide();
+  }
+  function reiniciarTimerSlide() {
+    if (slideTimer) clearInterval(slideTimer);
+    slideTimer = setInterval(function () { irSlide(slideIdx + 1, false); }, 4500);
   }
   function abrirFoto(i) {
     if (!galeriaFotos.length) return;
@@ -398,7 +422,8 @@
     var status = q.get('status') || q.get('collection_status') || '';
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
 
-    var sec = $('#presentes'); if (sec && !sec.hidden) sec.open = true;
+    var sec = $('#presentes');
+    if (sec && !sec.hidden) { try { sec.scrollIntoView({ behavior: 'smooth' }); } catch (e) {} }
     var alvo = $('#presentes-msg');
     var texto, classe;
     if (status === 'approved') {
@@ -530,6 +555,31 @@
         if (x0 === null) return;
         var dx = e.changedTouches[0].clientX - x0; x0 = null;
         if (Math.abs(dx) > 40) passarFoto(dx < 0 ? 1 : -1);
+      }, { passive: true });
+    }
+
+    // ---- navbar fixa: aparece depois da capa ----
+    var navbar = $('#navbar'), capaEl = $('#capa');
+    function onScrollNav() {
+      if (!navbar || !capaEl) return;
+      var lim = capaEl.offsetHeight * 0.7;
+      navbar.classList.toggle('visivel', window.scrollY > lim);
+    }
+    window.addEventListener('scroll', onScrollNav, { passive: true });
+    var topo = $('#nav-topo');
+    if (topo) topo.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+    // ---- controles do slideshow ----
+    var sprev = $('#slide-prev'), snext = $('#slide-next');
+    if (sprev) sprev.addEventListener('click', function () { irSlide(slideIdx - 1, true); });
+    if (snext) snext.addEventListener('click', function () { irSlide(slideIdx + 1, true); });
+    var palco = $('#slideshow-palco'), sx = null;
+    if (palco) {
+      palco.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, { passive: true });
+      palco.addEventListener('touchend', function (e) {
+        if (sx === null) return;
+        var dx = e.changedTouches[0].clientX - sx; sx = null;
+        if (Math.abs(dx) > 40) irSlide(slideIdx + (dx < 0 ? 1 : -1), true);
       }, { passive: true });
     }
   });

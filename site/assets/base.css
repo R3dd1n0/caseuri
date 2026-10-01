@@ -1,276 +1,347 @@
 /**
- * base.css — reset estrutural + TEMA em variáveis.
+ * base.css — redesign editorial (Mariana): rolagem única, bordô + creme,
+ * fotos em P&B e ilustrações. Toda a identidade mora nas variáveis abaixo.
  *
- * A Mariana muda o visual editando só as variáveis abaixo (cores/fontes/raios).
- * O resto é layout estrutural, propositalmente neutro (sem identidade visual).
+ * A estrutura dos componentes (botões, cards, formulários, modal, lightbox)
+ * é a mesma que o app.js espera — só muda a roupa.
  */
 
 :root {
-  /* ---- TEMA — identidade do casamento (monograma MF) ---- */
-  --cor-fundo: #FDF8F0;          /* creme/marfim (papel) */
-  --cor-texto: #1B1918;          /* quase-preto */
-  --cor-suave: #8a7361;          /* marrom suave (texto de apoio) */
-  --cor-borda: #E4D7C3;          /* bege (bordas/textura) */
-  --cor-primaria: #740C23;       /* bordô/vinho (monograma) */
-  --cor-primaria-texto: #FDF8F0; /* creme sobre bordô */
-  --cor-cartao: #FBF3E7;         /* creme levemente mais quente */
-  --cor-sucesso: #5c7a3a;
-  --cor-erro: #9c2b2b;
+  --bordo: #740C23;          /* vinho/bordô (cor principal) */
+  --bordo-esc: #5A0A1B;      /* bordô mais fundo (gradientes) */
+  --creme: #FBF3E7;          /* creme/marfim (papel) */
+  --creme-2: #FDF8F0;        /* creme levemente mais claro */
+  --tinta: #2B1517;          /* quase-preto quente (texto no creme) */
+  --tinta-suave: #8a7066;    /* apoio */
+  --linha: #E6D8C5;          /* bordas no creme */
+  --cartao: #FFFFFF;         /* fundo dos cards */
+  --sucesso: #5c7a3a;
+  --erro: #9c2b2b;
 
   --fonte-titulo: 'Housemail Trial Script', 'Cormorant Garamond', cursive;
   --fonte-corpo: 'Jost', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  /* números (contagem) precisam de fonte com dígitos — a Housemail não tem */
-  --fonte-numeros: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  /* fonte dos NOMES do casal (igual ao save the date) */
-  --fonte-nomes: 'Bowlby One', 'Arial Black', system-ui, sans-serif;
 
-  --raio: 8px;
-  --gap: 1rem;
-  --largura-max: 720px;
+  --raio: 14px;
+  --nav-altura: 54px;
+  --largura: 640px;
+
+  /* compatibilidade com nomes antigos usados em pontos isolados */
+  --cor-fundo: var(--creme);
+  --cor-texto: var(--tinta);
+  --cor-primaria: var(--bordo);
+  --cor-primaria-texto: var(--creme);
 }
 
-/* Fonte dos nomes do casal (igual ao save the date), hospedada localmente. */
-@font-face {
-  font-family: 'Bowlby One';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('fonts/bowlby-one.woff2') format('woff2');
-}
-
-/* Fonte dos TÍTULOS (Housemail Trial Script), hospedada localmente. */
+/* Fonte dos títulos (Housemail Trial Script), hospedada localmente. */
 @font-face {
   font-family: 'Housemail Trial Script';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
+  font-style: normal; font-weight: 400; font-display: swap;
   src: url('fonts/housemail.woff2') format('woff2');
 }
 
 * { box-sizing: border-box; }
 
+html { scroll-behavior: smooth; }
 html, body {
-  margin: 0;
-  padding: 0;
-  background: var(--cor-fundo);
-  color: var(--cor-texto);
+  margin: 0; padding: 0;
+  background: var(--creme);
+  color: var(--tinta);
   font-family: var(--fonte-corpo);
-  line-height: 1.55;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
 }
-
 img { max-width: 100%; display: block; }
-
-h1, h2, h3 { font-family: var(--fonte-titulo); font-weight: 600; line-height: 1.15; color: var(--cor-primaria); letter-spacing: .01em; }
-
-/* ---- Monograma MF ---- */
-.monograma { display: block; width: 118px; height: auto; margin: 0 auto 1.2rem; }
-.capa .monograma { width: 168px; margin-bottom: 1.6rem; }
-
 a { color: inherit; }
 
-.container {
-  width: 100%;
-  max-width: var(--largura-max);
-  margin: 0 auto;
-  padding: 0 1rem;
+/* Título manuscrito (Housemail) — usado em todas as seções. */
+.script {
+  font-family: var(--fonte-titulo);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: .01em;
+  color: var(--bordo);
+  margin: 0;
+}
+.titulo-secao {
+  font-size: clamp(2.6rem, 12vw, 3.9rem);
+  text-align: center;
+  margin: 0 0 1.4rem;
+}
+.rotulo {
+  text-transform: uppercase;
+  letter-spacing: .28em;
+  font-size: .72rem;
+  color: var(--tinta-suave);
+  text-align: center;
+  margin: 0;
 }
 
-/* ---- Botões / campos ---- */
+/* ====================== BOTÕES / CAMPOS ====================== */
 .botao {
   display: inline-block;
-  padding: 0.7rem 1.2rem;
-  border: 1px solid var(--cor-primaria);
-  border-radius: var(--raio);
-  background: var(--cor-primaria);
-  color: var(--cor-primaria-texto);
-  font: inherit;
-  cursor: pointer;
-  text-align: center;
+  padding: 0.85rem 1.3rem;
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  background: var(--bordo);
+  color: var(--creme);
+  font: inherit; font-weight: 500;
+  cursor: pointer; text-align: center;
+  transition: opacity .15s ease, background .15s ease;
 }
-.botao--secundario { background: transparent; color: var(--cor-texto); }
+.botao:hover { opacity: .92; }
+.botao--secundario { background: transparent; color: var(--bordo); }
 .botao[disabled] { opacity: 0.5; cursor: default; }
 
 .campo {
   width: 100%;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
   font: inherit;
-  background: var(--cor-fundo);
-  color: var(--cor-texto);
+  background: var(--creme-2);
+  color: var(--tinta);
 }
-label { display: block; margin-bottom: 0.35rem; color: var(--cor-suave); }
+.campo:focus { outline: 2px solid rgba(116,12,35,.35); outline-offset: 1px; }
+label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 
-/* ---- Gate (landing) ---- */
+.msg { font-size: 0.92rem; margin-top: .4rem; }
+.msg--erro { color: var(--erro); }
+.msg--ok { color: var(--sucesso); }
+.lembrete { color: var(--tinta-suave); font-size: 0.9rem; }
+
+/* ====================== GATE (entrada por nome) ====================== */
 #gate {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 2rem 1rem;
+  min-height: 100svh;
+  display: grid; place-items: center;
+  padding: 2.5rem 1.2rem;
+  background: radial-gradient(130% 100% at 50% 0%, var(--bordo) 0%, var(--bordo-esc) 100%);
+  color: var(--creme);
 }
 #gate .caixa { width: 100%; max-width: 420px; text-align: center; }
-#gate form { display: grid; gap: 0.8rem; margin-top: 1rem; }
+#gate .monograma { width: 92px; margin: 0 auto 1.4rem; }
+#gate h1 { font-family: var(--fonte-titulo); color: var(--creme); font-weight: 400;
+  font-size: clamp(2.2rem, 11vw, 3rem); line-height: 1.05; margin: 0 0 .4rem; }
+#gate p { color: rgba(255,255,255,.82); margin: 0; }
+#gate form { display: grid; gap: 0.8rem; margin-top: 1.3rem; }
+#gate .campo { background: rgba(255,255,255,.96); border-color: transparent; }
+#gate .botao { background: var(--creme); color: var(--bordo); border-color: var(--creme); font-weight: 600; }
+#gate .msg--erro { color: #ffd4d4; }
 
-/* ---- Hub / seções ---- */
+/* ====================== HUB ====================== */
 #hub { display: none; }
 #hub.visivel { display: block; }
 
-/* ---- Acordeão de seções (details/summary) ---- */
-.secao { border-bottom: 1px solid var(--cor-borda); }
-.secao > summary {
-  list-style: none;               /* esconde o triângulo padrão */
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 1rem;
-  padding: 1.1rem 0;
-  font-family: var(--fonte-titulo);
-  font-size: 1.5rem; font-weight: 600;
-  color: var(--cor-primaria);
+/* navbar fixa que aparece depois da capa */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  height: var(--nav-altura);
+  display: flex; align-items: center; gap: .6rem;
+  padding: 0 .8rem;
+  background: rgba(116,12,35,.97);
+  box-shadow: 0 1px 0 rgba(0,0,0,.08);
+  transform: translateY(-100%);
+  transition: transform .28s ease;
 }
-.secao > summary::-webkit-details-marker { display: none; }
-.secao > summary::after {            /* chevron desenhado por borda */
-  content: ""; flex: none;
-  width: 0.5rem; height: 0.5rem;
-  border-right: 2px solid var(--cor-suave);
-  border-bottom: 2px solid var(--cor-suave);
-  transform: rotate(45deg);
-  transition: transform 0.2s ease;
+.navbar.visivel { transform: none; }
+.navbar .marca { flex: none; background: none; border: 0; padding: 0; cursor: pointer; display: flex; }
+.navbar .marca img { width: 30px; height: 30px; }
+.navbar-links {
+  display: flex; gap: 1.15rem; overflow-x: auto; margin: 0; padding: 0 .2rem;
+  -ms-overflow-style: none; scrollbar-width: none;
 }
-.secao[open] > summary::after { transform: rotate(-135deg); }
-.secao-corpo { padding: 0 0 1.6rem; }
-.secao-titulo { line-height: 1.2; }
-.acoes { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-.acoes .botao { flex: 1 1 auto; text-align: center; }
-
-/* ---- Linha do tempo de fotos (dentro de "Nossa história") ---- */
-.timeline {
-  display: flex; gap: 0.6rem;
-  margin-top: 1.4rem; padding-bottom: 0.6rem;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
+.navbar-links::-webkit-scrollbar { display: none; }
+.navbar-links a {
+  flex: none; color: rgba(255,255,255,.9); text-decoration: none;
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .14em; white-space: nowrap;
+  padding: .2rem 0;
 }
-.timeline::-webkit-scrollbar { height: 6px; }
-.timeline::-webkit-scrollbar-thumb { background: var(--cor-borda); border-radius: 3px; }
-.timeline-item {
-  flex: 0 0 auto; scroll-snap-align: start;
-  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
-  background: none; border: 0; padding: 0; cursor: pointer; font: inherit;
+
+/* ---- CAPA ---- */
+.capa {
+  min-height: 100svh;
+  background: radial-gradient(130% 90% at 50% 0%, var(--bordo) 0%, var(--bordo-esc) 100%);
+  color: var(--creme);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: clamp(1.6rem, 6vw, 2.6rem) 1.2rem clamp(1.2rem, 4vw, 2rem);
 }
-.timeline-item img {
-  height: 150px; width: auto; border-radius: var(--raio);
-  border: 1px solid var(--cor-borda);
+.capa .monograma { width: clamp(72px, 18vw, 96px); margin: 0 0 .4rem; }
+.capa-titulo {
+  font-family: var(--fonte-titulo); color: var(--creme); font-weight: 400;
+  font-size: clamp(2.8rem, 15vw, 4.6rem); line-height: 1; margin: .2rem 0 1rem;
 }
-.timeline-ano { font-size: 0.75rem; color: var(--cor-suave); letter-spacing: .06em; }
-
-.rodape { text-align: center; padding: 2rem 0 3rem; }
-.rodape a { color: var(--cor-suave); text-decoration: none; font-size: 0.9rem; }
-
-.capa { text-align: center; padding: 3.5rem 0 2.5rem; }
-.capa h1 {
-  font-family: var(--fonte-nomes);
-  font-weight: 400;                 /* Bowlby One já é pesada */
-  font-size: clamp(2rem, 8vw, 3.6rem);
-  line-height: 1.1;
-  letter-spacing: 0;
-  margin: 0.4rem 0;
+.capa-moldura {
+  position: relative; width: min(74%, 330px); aspect-ratio: 3/4;
+  border: 1px solid rgba(255,255,255,.55); padding: 7px; margin: 0 auto;
 }
-.capa > p { color: var(--cor-suave); text-transform: uppercase; letter-spacing: .22em; font-size: .8rem; margin: 0; }
-
-.contagem { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
-.contagem div { min-width: 64px; }
-.contagem .num { font-size: 2rem; font-family: var(--fonte-numeros); }
-.contagem .rot { font-size: 0.75rem; color: var(--cor-suave); text-transform: uppercase; }
-
-/* ---- RSVP por pessoa ---- */
-.pessoa-rsvp {
-  display: grid;
-  gap: 0.4rem;
-  padding: 0.8rem 0;
-  border-bottom: 1px solid var(--cor-borda);
+.capa-moldura img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.03); }
+.capa-data {
+  position: absolute; left: 0; right: 0; bottom: 14px;
+  font-weight: 700; font-size: clamp(1.4rem, 7vw, 2rem); letter-spacing: .02em;
+  color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.55);
 }
-.rsvp-opcoes { display: flex; gap: 1.2rem; }
-.rsvp-opcoes label { display: inline-flex; align-items: center; gap: 0.3rem; margin: 0; color: var(--cor-texto); }
+.contagem { display: flex; gap: .9rem; justify-content: center; margin: 1.3rem 0 .2rem; color: var(--creme); }
+.contagem div { min-width: 52px; }
+.contagem .num { font-size: 1.7rem; font-weight: 600; line-height: 1; }
+.contagem .rot { font-size: 0.62rem; text-transform: uppercase; letter-spacing: .16em; opacity: .8; margin-top: .2rem; }
 
-/* ---- Presentes ---- */
-.grade-presentes { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
-@media (min-width: 560px) { .grade-presentes { grid-template-columns: 1fr 1fr; } }
+.capa-nav {
+  margin-top: auto; padding-top: 1.6rem;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem 1.4rem;
+}
+.capa-nav a {
+  color: var(--creme); text-decoration: none;
+  font-family: var(--fonte-titulo); font-size: 1.25rem; line-height: 1.1;
+  opacity: .95;
+}
+.capa-nav a:hover { opacity: .75; }
 
+/* ---- BLOCOS ---- */
+.bloco { padding: clamp(3rem, 11vw, 5rem) 0; scroll-margin-top: var(--nav-altura); position: relative; }
+.bloco-inner { width: 100%; max-width: var(--largura); margin: 0 auto; padding: 0 1.2rem; }
+.bloco--creme { background: var(--creme); color: var(--tinta); }
+.bloco--bordo { background: var(--bordo); color: var(--creme); }
+.bloco--bordo .script { color: var(--creme); }
+.bloco--bordo .rotulo { color: rgba(255,255,255,.72); }
+.bloco p { margin: 0 0 1rem; }
+
+/* ---- NOSSA HISTÓRIA (texto sobre foto P&B esmaecida) ---- */
+.bloco--historia { background: var(--bordo); color: var(--creme); overflow: hidden; }
+.bloco--historia::before {
+  content: ''; position: absolute; inset: 0;
+  background: url('fotos/praia.jpg') center 30%/cover no-repeat;
+  filter: grayscale(1); opacity: .16;
+}
+.bloco--historia .bloco-inner { position: relative; }
+.bloco--historia .titulo-secao { color: var(--creme); text-shadow: 0 2px 20px rgba(0,0,0,.4); }
+.historia-texto p { color: rgba(255,255,255,.94); }
+
+/* ---- SLIDESHOW ---- */
+.slideshow-palco {
+  position: relative; width: min(92%, 440px); margin: 1.1rem auto 0;
+  aspect-ratio: 4/5; border-radius: 6px; overflow: hidden; background: #0c0607;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+}
+.slide {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 1s ease; filter: grayscale(1) contrast(1.03); cursor: pointer;
+}
+.slide.ativo { opacity: 1; }
+.slide-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 2.3rem; height: 2.3rem; border: 0; border-radius: 50%;
+  background: rgba(0,0,0,.4); color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; z-index: 2;
+}
+.slide-prev { left: .5rem; } .slide-next { right: .5rem; }
+.slideshow-dots { display: flex; gap: .4rem; justify-content: center; margin-top: .9rem; }
+.slideshow-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; background: var(--linha); cursor: pointer; padding: 0; }
+.slideshow-dots .dot.ativo { background: var(--bordo); }
+
+/* ---- ILUSTRAÇÕES ---- */
+.ill { display: block; margin: 1rem auto; }
+.ill-venue { width: min(82%, 300px); }
+.ill-envelope { width: min(58%, 215px); margin-bottom: 1.4rem; }
+.ill-tower { width: min(26%, 110px); margin-top: 1.8rem; opacity: .95; }
+.ill-dogs { width: min(70%, 260px); }
+
+/* ---- QUANDO & ONDE ---- */
+.dados { text-align: center; margin: 0 0 1rem; }
+.dados p { margin: .15rem 0; font-size: 1.05rem; }
+.dados strong { font-weight: 700; }
+.estacionamento {
+  font-family: var(--fonte-titulo); color: var(--bordo);
+  font-size: 1.5rem; line-height: 1.25; text-align: center; margin: 1.2rem auto 1.4rem; max-width: 24ch;
+}
+.acoes { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
+.acoes .botao { flex: 1 1 42%; }
+.foto-jardim {
+  width: min(78%, 320px); aspect-ratio: 3/4; object-fit: cover; margin: 1.8rem auto 0;
+  filter: grayscale(1) contrast(1.03); border: 1px solid var(--linha); padding: 6px; background: var(--creme-2);
+}
+
+/* ---- DRESS CODE ---- */
+.bloco--dress { overflow: hidden; }
+.bloco--dress .bloco-inner { padding-left: 2.8rem; padding-right: 2.8rem; }
+.bloco--dress::before, .bloco--dress::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 30px;
+  background: url('ill/lace.png') center/contain repeat-y; opacity: .9;
+}
+.bloco--dress::before { left: 6px; }
+.bloco--dress::after { right: 6px; transform: scaleX(-1); }
+.dress-destaque {
+  font-size: 1.15rem; font-weight: 700; color: var(--creme);
+  text-align: center; margin: 0 0 .8rem; letter-spacing: .02em;
+}
+.bloco--dress .corpo { text-align: center; color: rgba(255,255,255,.92); max-width: 30ch; margin: 0 auto; }
+
+/* ---- RSVP ---- */
+.rsvp-grupo { text-align: center; margin: 0 0 1rem; }
+.pessoa-rsvp { display: grid; gap: 0.5rem; padding: 1rem 0; border-bottom: 1px solid var(--linha); }
+.pessoa-rsvp strong { font-size: 1.1rem; }
+.rsvp-opcoes { display: flex; gap: 1.4rem; }
+.rsvp-opcoes label { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0; color: var(--tinta); }
+#rsvp-form .botao { width: 100%; margin-top: 1.1rem; }
+.selo { font-size: 0.78rem; color: var(--tinta-suave); }
+
+/* ---- PRESENTES ---- */
+.grade-presentes { display: grid; gap: 1rem; grid-template-columns: 1fr; margin-top: .4rem; }
+@media (min-width: 620px) { .grade-presentes { grid-template-columns: 1fr 1fr; } }
 .card-presente {
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio);
-  background: var(--cor-cartao);
-  padding: 1rem;
-  display: flex; flex-direction: column; gap: 0.5rem;
+  border: 1px solid var(--linha); border-radius: var(--raio);
+  background: var(--cartao); padding: 1.2rem;
+  display: flex; flex-direction: column; gap: 0.45rem;
 }
 .card-presente.esgotado { opacity: 0.55; }
-.selo { font-size: 0.75rem; color: var(--cor-suave); }
+.card-presente strong { font-size: 1.12rem; line-height: 1.25; color: var(--tinta); }
+.card-presente .campo { margin-top: .3rem; }
+.card-acao { margin-top: auto; padding-top: .4rem; }
+.card-acao .botao { width: 100%; }
+.card-acao .acoes .botao { flex: 1 1 42%; }
+.metodo-label { font-size: 0.85rem; color: var(--tinta-suave); margin: 0 0 0.45rem; }
+#presentes-obrigado { text-align: center; color: var(--sucesso); margin-bottom: 1rem; }
+#presentes-intro { text-align: center; }
+#presentes-msg { text-align: center; }
 
-/* ---- PIX / modal ---- */
+/* ---- RECADOS (bordô) + MURAL (creme) ---- */
+.bloco--recados { text-align: center; }
+.bloco--recados p { color: rgba(255,255,255,.92); }
+.mural { display: grid; gap: 0.8rem; max-width: 480px; margin: 1.2rem auto 0; }
+.mural textarea { resize: vertical; min-height: 5rem; }
+.mural .botao { width: 100%; }
+#mural-titulo { font-size: clamp(2rem, 9vw, 2.6rem); text-align: center; margin-bottom: .4rem; }
+
+/* ---- rodapé ---- */
+.rodape { text-align: center; padding: 2rem 0 3rem; background: var(--creme); }
+.rodape a { color: var(--tinta-suave); text-decoration: none; font-size: 0.9rem; }
+
+.monograma { display: block; height: auto; }
+
+/* ====================== MODAL PIX ====================== */
 .pix-area { display: grid; gap: 0.6rem; justify-items: center; text-align: center; }
 .pix-area img { width: 220px; height: 220px; }
 .copia-cola {
   width: 100%; font-size: 0.8rem; word-break: break-all;
-  padding: 0.5rem; border: 1px dashed var(--cor-borda); border-radius: var(--raio);
+  padding: 0.5rem; border: 1px dashed var(--linha); border-radius: var(--raio);
 }
 
-.msg { padding: 0.6rem 0.8rem; border-radius: var(--raio); font-size: 0.9rem; }
-.msg--erro { color: var(--cor-erro); }
-.msg--ok { color: var(--cor-sucesso); }
-.lembrete { color: var(--cor-suave); font-size: 0.9rem; }
-
-/* ---- Presentes: escolha do meio de pagamento só após clicar ---- */
-.card-acao { margin-top: auto; }
-.metodo-label { font-size: 0.85rem; color: var(--cor-suave); margin: 0 0 0.35rem; }
-
-/* ---- Dress code ---- */
-.dress-destaque {
-  font-family: var(--fonte-corpo);   /* mesma do texto, só que em negrito */
-  font-size: 1rem; font-weight: 700; color: var(--cor-texto);
-  text-transform: none; letter-spacing: normal; margin: 0 0 0.5rem;
-}
-
-/* ---- Mural de recados ---- */
-.mural {
-  display: grid; gap: 0.6rem;
-  margin-top: 1.6rem; padding-top: 1.3rem;
-  border-top: 1px solid var(--cor-borda);
-}
-.mural label {
-  font-family: var(--fonte-titulo); font-size: 1.15rem;
-  color: var(--cor-primaria); margin: 0;
-}
-.mural textarea { resize: vertical; min-height: 3.4rem; }
-
-/* ---- Lightbox de fotos ---- */
+/* ====================== LIGHTBOX ====================== */
 .foto-modal {
-  position: fixed; inset: 0; z-index: 30;
-  background: rgba(20,10,12,.93);
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(20,8,10,.94);
   display: flex; align-items: center; justify-content: center; padding: 1rem;
 }
-.foto-fig {
-  margin: 0; max-width: 100%; max-height: 100%;
-  display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
-}
-.foto-fig img { max-width: 92vw; max-height: 80vh; width: auto; height: auto; border-radius: var(--raio); }
-.foto-fig figcaption { color: var(--cor-primaria-texto); font-size: 0.85rem; letter-spacing: .12em; text-transform: uppercase; }
+.foto-fig { margin: 0; max-width: 100%; max-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.foto-fig img { max-width: 92vw; max-height: 80vh; width: auto; height: auto; border-radius: 6px; filter: grayscale(1); }
+.foto-fig figcaption { color: var(--creme); font-size: 0.85rem; letter-spacing: .12em; text-transform: uppercase; }
 .foto-x {
   position: absolute; top: 1rem; right: 1rem; z-index: 2;
   width: 2.4rem; height: 2.4rem; border: 0; border-radius: 50%;
-  background: rgba(0,0,0,.45); color: #fff; font-size: 1rem; cursor: pointer;
+  background: rgba(0,0,0,.5); color: #fff; font-size: 1rem; cursor: pointer;
 }
 .foto-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
   width: 2.6rem; height: 2.6rem; border: 0; border-radius: 50%;
-  background: rgba(0,0,0,.45); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer;
+  background: rgba(0,0,0,.5); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer;
 }
-#foto-prev { left: 0.6rem; }
-#foto-next { right: 0.6rem; }
+#foto-prev { left: 0.6rem; } #foto-next { right: 0.6rem; }
 
 [hidden] { display: none !important; }
-
-/* ---- Tema escuro: só quando a Mariana definir a paleta escura ----
-@media (prefers-color-scheme: dark) {
-  :root { --cor-fundo:#111; --cor-texto:#eee; ...  }
-}
-*/

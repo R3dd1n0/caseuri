@@ -14,12 +14,12 @@ window.CONTEUDO = {
   },
 
   evento: {
-    // Data/hora em ISO usada na contagem regressiva (18h30 de 12/11/2026).
-    dataISO: '2026-11-12T18:30:00-03:00',
+    // Data/hora em ISO usada na contagem regressiva (18h de 12/11/2026).
+    dataISO: '2026-11-12T18:00:00-03:00',
     dataTexto: '12 de novembro de 2026',
-    horario: 'A festa começa às 18h30',
+    horario: '18h',
     local: 'Flores Arte Bistrô',
-    endereco: 'Rua Xavier de Castro, 68, Praia de Iracema, Fortaleza',
+    endereco: 'Rua Xavier de Castro, nº 68, Praia de Iracema',
     mapsUrl: 'https://maps.app.goo.gl/duwmXrSrzr9BmJmE9',
     wazeUrl: 'https://waze.com/ul?ll=-3.7214135,-38.5125623&navigate=yes'
   },
@@ -57,12 +57,12 @@ window.CONTEUDO = {
       ]
     },
     quandoOnde: {
-      titulo: 'Quando & onde',
+      titulo: 'Quando e onde',
       corpo: 'Reserve a data e venha comemorar com a gente.',
       estacionamento: 'As vagas de estacionamento na rua são poucas, então vale ir de aplicativo ou combinar uma carona.'
     },
     dressCode: {
-      titulo: 'Dress code',
+      titulo: 'Dress Code',
       destaque: 'Esporte fino · All black',
       corpo: 'Para celebrar com a gente, queremos todo mundo de preto. A proposta é um visual esporte fino, 100% preto, dos pés à cabeça, sem medo de exagerar!'
     },
@@ -71,10 +71,10 @@ window.CONTEUDO = {
       corpo: ''
     },
     recados: {
-      titulo: 'Recados',
+      titulo: 'Recadinhos',
       paragrafos: [
         'Se você está aqui, é porque foi escolhido a dedo. Entre tantas pessoas que fazem parte da nossa história, vocês estão entre aquelas que queremos bem perto para celebrar esse momento.',
-        'Nos vemos dia 12 de novembro. 🖤'
+        'Nos vemos dia 12 de novembro. 🤍'
       ]
     }
   },
