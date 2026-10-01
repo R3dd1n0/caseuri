@@ -146,15 +146,21 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 .navbar .marca { flex: none; background: none; border: 0; padding: 0; cursor: pointer; display: flex; }
 .navbar .marca img { width: 30px; height: 30px; }
 .navbar-links {
-  display: flex; gap: 1.15rem; overflow-x: auto; margin: 0; padding: 0 .2rem;
+  display: flex; flex: 1 1 auto; gap: 1.15rem; overflow-x: auto; margin: 0; padding: 0 .2rem;
   -ms-overflow-style: none; scrollbar-width: none;
 }
 .navbar-links::-webkit-scrollbar { display: none; }
 .navbar-links a {
-  flex: none; color: rgba(255,255,255,.9); text-decoration: none;
-  font-size: .7rem; text-transform: uppercase; letter-spacing: .14em; white-space: nowrap;
+  flex: none; color: rgba(255,255,255,.92); text-decoration: none;
+  font-size: .82rem; text-transform: uppercase; letter-spacing: .13em; white-space: nowrap;
   padding: .2rem 0;
 }
+.nav-sair {
+  flex: none; color: var(--creme); text-decoration: none; white-space: nowrap;
+  font-size: .74rem; text-transform: uppercase; letter-spacing: .14em;
+  border: 1px solid rgba(255,255,255,.55); border-radius: 999px; padding: .32rem .8rem;
+}
+.nav-sair:hover { background: rgba(255,255,255,.12); }
 
 /* ---- CAPA ---- */
 .capa {
@@ -185,19 +191,34 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 .contagem .rot { font-size: 0.62rem; text-transform: uppercase; letter-spacing: .16em; opacity: .8; margin-top: .2rem; }
 
 .capa-nav {
-  margin-top: auto; padding-top: 1.6rem;
-  display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem 1.4rem;
+  margin-top: auto; padding-top: 1.8rem;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.6rem;
 }
 .capa-nav a {
   color: var(--creme); text-decoration: none;
-  font-family: var(--fonte-titulo); font-size: 1.25rem; line-height: 1.1;
-  opacity: .95;
+  font-family: var(--fonte-titulo); font-size: clamp(1.65rem, 5.5vw, 2.2rem); line-height: 1.15;
+  opacity: .96;
 }
 .capa-nav a:hover { opacity: .75; }
 
 /* ---- BLOCOS ---- */
 .bloco { padding: clamp(3rem, 11vw, 5rem) 0; scroll-margin-top: var(--nav-altura); position: relative; }
-.bloco-inner { width: 100%; max-width: var(--largura); margin: 0 auto; padding: 0 1.2rem; }
+.bloco-inner { position: relative; z-index: 1; width: 100%; max-width: var(--largura); margin: 0 auto; padding: 0 1.2rem; }
+
+/* ---- Seções recolhíveis (details/summary) ---- */
+details.bloco > summary {
+  list-style: none; cursor: pointer; display: block;
+}
+details.bloco > summary::-webkit-details-marker { display: none; }
+details.bloco > summary .titulo-secao { margin: 0; }
+.bloco-chevron {
+  display: block; width: 0.6rem; height: 0.6rem; margin: 0.7rem auto 0;
+  border-right: 2px solid var(--bordo); border-bottom: 2px solid var(--bordo);
+  transform: rotate(45deg); transition: transform 0.2s ease;
+}
+.bloco--bordo .bloco-chevron { border-color: var(--creme); }
+details.bloco[open] > summary { margin-bottom: 1.3rem; }
+details.bloco[open] .bloco-chevron { transform: rotate(-135deg); margin-top: 0.9rem; }
 .bloco--creme { background: var(--creme); color: var(--tinta); }
 .bloco--bordo { background: var(--bordo); color: var(--creme); }
 .bloco--bordo .script { color: var(--creme); }
@@ -247,9 +268,10 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 .dados { text-align: center; margin: 0 0 1rem; }
 .dados p { margin: .15rem 0; font-size: 1.05rem; }
 .dados strong { font-weight: 700; }
-.estacionamento {
+/* Nota de estacionamento: centralizada (seletor forte p/ vencer `.bloco p`). */
+.bloco p.estacionamento {
   font-family: var(--fonte-titulo); color: var(--bordo);
-  font-size: 1.5rem; line-height: 1.25; text-align: center; margin: 1.2rem auto 1.4rem; max-width: 24ch;
+  font-size: 1.4rem; line-height: 1.32; text-align: center; margin: 1.3rem 0 1.6rem; max-width: none;
 }
 .acoes { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
 .acoes .botao { flex: 1 1 42%; }
@@ -310,8 +332,10 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 #mural-titulo { font-size: clamp(2rem, 9vw, 2.6rem); text-align: center; margin-bottom: .4rem; }
 
 /* ---- rodapé ---- */
-.rodape { text-align: center; padding: 2rem 0 3rem; background: var(--creme); }
+.rodape { text-align: center; padding: 2.4rem 0 3rem; background: var(--creme); }
 .rodape a { color: var(--tinta-suave); text-decoration: none; font-size: 0.9rem; }
+.rodape-nomes { font-family: var(--fonte-titulo); color: var(--bordo); font-size: 2rem; margin: 0; }
+.rodape-data { color: var(--tinta-suave); font-size: 0.8rem; letter-spacing: .18em; text-transform: uppercase; margin: .3rem 0 0; }
 
 .monograma { display: block; height: auto; }
 

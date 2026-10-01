@@ -423,7 +423,10 @@
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
 
     var sec = $('#presentes');
-    if (sec && !sec.hidden) { try { sec.scrollIntoView({ behavior: 'smooth' }); } catch (e) {} }
+    if (sec && !sec.hidden) {
+      sec.open = true; // é um <details>: garante que fique aberto ao voltar do cartão
+      try { sec.scrollIntoView({ behavior: 'smooth' }); } catch (e) {}
+    }
     var alvo = $('#presentes-msg');
     var texto, classe;
     if (status === 'approved') {
