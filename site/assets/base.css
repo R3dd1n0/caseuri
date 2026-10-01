@@ -192,14 +192,15 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 
 .capa-nav {
   margin-top: auto; padding-top: 1.8rem;
-  display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.6rem;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem .7rem;
 }
 .capa-nav a {
   color: var(--creme); text-decoration: none;
-  font-family: var(--fonte-titulo); font-size: clamp(1.65rem, 5.5vw, 2.2rem); line-height: 1.15;
-  opacity: .96;
+  font-family: var(--fonte-titulo); font-size: clamp(1.45rem, 5vw, 1.95rem); line-height: 1;
+  border: 1px solid rgba(255,255,255,.5); border-radius: 999px;
+  padding: .5rem 1.15rem; background: rgba(255,255,255,.07);
 }
-.capa-nav a:hover { opacity: .75; }
+.capa-nav a:hover { background: rgba(255,255,255,.16); }
 
 /* ---- BLOCOS ---- */
 .bloco { padding: clamp(3rem, 11vw, 5rem) 0; scroll-margin-top: var(--nav-altura); position: relative; }
@@ -219,22 +220,43 @@ details.bloco > summary .titulo-secao { margin: 0; }
 .bloco--bordo .bloco-chevron { border-color: var(--creme); }
 details.bloco[open] > summary { margin-bottom: 1.3rem; }
 details.bloco[open] .bloco-chevron { transform: rotate(-135deg); margin-top: 0.9rem; }
+/* Acordeão da lista de presentes */
+.bloco--acordeao > summary:hover { background: rgba(116,12,35,.03); }
+.acordeao-dica {
+  display: block; text-align: center; font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--tinta-suave); margin-top: .55rem;
+}
+details.bloco--acordeao[open] .acordeao-dica { display: none; }
 .bloco--creme { background: var(--creme); color: var(--tinta); }
 .bloco--bordo { background: var(--bordo); color: var(--creme); }
 .bloco--bordo .script { color: var(--creme); }
 .bloco--bordo .rotulo { color: rgba(255,255,255,.72); }
 .bloco p { margin: 0 0 1rem; }
 
-/* ---- NOSSA HISTÓRIA (texto sobre foto P&B esmaecida) ---- */
-.bloco--historia { background: var(--bordo); color: var(--creme); overflow: hidden; }
+/* ---- NOSSA HISTÓRIA (texto sobre a foto P&B, bem visível) ---- */
+.bloco--historia { background: var(--bordo-esc); color: var(--creme); overflow: hidden; }
 .bloco--historia::before {
-  content: ''; position: absolute; inset: 0;
-  background: url('fotos/praia.jpg') center 30%/cover no-repeat;
-  filter: grayscale(1); opacity: .16;
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: url('fotos/praia.jpg') center 28%/cover no-repeat;
+  filter: grayscale(1); opacity: .5;
 }
-.bloco--historia .bloco-inner { position: relative; }
-.bloco--historia .titulo-secao { color: var(--creme); text-shadow: 0 2px 20px rgba(0,0,0,.4); }
-.historia-texto p { color: rgba(255,255,255,.94); }
+.bloco--historia::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 64px; z-index: 0;
+  background: linear-gradient(to top, var(--creme), rgba(251,243,231,0));
+}
+.bloco--historia { padding-bottom: clamp(5rem, 14vw, 6.5rem); }
+.bloco--historia .bloco-inner { position: relative; z-index: 1; }
+.bloco--historia .titulo-secao { color: var(--creme); text-shadow: 0 2px 16px rgba(0,0,0,.6); }
+.historia-texto p { color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.65); }
+
+/* Transições suaves (degradê) entre blocos bordô e creme, em vez de linha reta */
+.bloco--dress, .bloco--recados {
+  padding-top: clamp(5rem, 14vw, 6.5rem); padding-bottom: clamp(5rem, 14vw, 6.5rem);
+  background:
+    linear-gradient(to bottom, var(--creme), rgba(251,243,231,0) 64px) top/100% 64px no-repeat,
+    linear-gradient(to top, var(--creme), rgba(251,243,231,0) 64px) bottom/100% 64px no-repeat,
+    var(--bordo);
+}
 
 /* ---- SLIDESHOW ---- */
 .slideshow-palco {
@@ -295,8 +317,32 @@ details.bloco[open] .bloco-chevron { transform: rotate(-135deg); margin-top: 0.9
   text-align: center; margin: 0 0 .8rem; letter-spacing: .02em;
 }
 .bloco--dress .corpo { text-align: center; color: rgba(255,255,255,.92); max-width: 30ch; margin: 0 auto; }
+.rotulo--claro { color: rgba(255,255,255,.78); margin: 1.6rem 0 .2rem; }
+.dress-foto {
+  width: min(80%, 320px); aspect-ratio: 3/4; object-fit: cover; margin: 1.6rem auto .4rem;
+  filter: grayscale(1) contrast(1.04); border: 1px solid rgba(255,255,255,.45); padding: 6px;
+}
+.dress-refs {
+  position: relative; width: min(82%, 330px); margin: .8rem auto 0;
+  aspect-ratio: 3/4; border-radius: 4px; overflow: hidden; background: #0c0607;
+  box-shadow: 0 10px 26px rgba(0,0,0,.28);
+}
+.dref {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 1s ease; filter: grayscale(1) contrast(1.04);
+}
+.dref.ativo { opacity: 1; }
 
-/* ---- RSVP ---- */
+/* ---- RSVP (texto na folha do envelope) ---- */
+.envelope-wrap { position: relative; width: min(76%, 310px); margin: 0 auto 1.4rem; }
+.envelope-wrap .ill-envelope { width: 100%; margin: 0; }
+.envelope-texto {
+  position: absolute; left: 50%; top: 31%; transform: translate(-50%, -50%);
+  width: 60%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  pointer-events: none;
+}
+.envelope-mono { width: 32px; height: auto; margin: 0 auto; }
+.envelope-titulo { color: var(--bordo); font-size: clamp(1.1rem, 4.6vw, 1.5rem); line-height: 1.02; }
 .rsvp-grupo { text-align: center; margin: 0 0 1rem; }
 .pessoa-rsvp { display: grid; gap: 0.5rem; padding: 1rem 0; border-bottom: 1px solid var(--linha); }
 .pessoa-rsvp strong { font-size: 1.1rem; }

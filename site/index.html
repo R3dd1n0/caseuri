@@ -82,16 +82,13 @@
     </header>
 
     <main>
-      <!-- ---- NOSSA HISTÓRIA (recolhível, começa fechada) ---- -->
-      <details id="historia" class="bloco bloco--historia">
-        <summary>
-          <div class="bloco-inner">
-            <h2 class="script titulo-secao" data-bind="secoes.historia.titulo">·</h2>
-            <span class="bloco-chevron"></span>
-          </div>
-        </summary>
-        <div class="bloco-inner historia-texto" data-bind-paragrafos="secoes.historia.paragrafos"></div>
-      </details>
+      <!-- ---- NOSSA HISTÓRIA (texto sobre a foto, sempre visível) ---- -->
+      <section id="historia" class="bloco bloco--historia">
+        <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.historia.titulo">·</h2>
+          <div class="historia-texto" data-bind-paragrafos="secoes.historia.paragrafos"></div>
+        </div>
+      </section>
 
       <!-- ---- SLIDESHOW (nossas fotos passando) ---- -->
       <section id="slideshow" class="bloco bloco--creme">
@@ -107,14 +104,9 @@
       </section>
 
       <!-- ---- QUANDO & ONDE ---- -->
-      <details id="quando" class="bloco bloco--creme" open>
-        <summary>
-          <div class="bloco-inner">
-            <h2 class="script titulo-secao" data-bind="secoes.quandoOnde.titulo">·</h2>
-            <span class="bloco-chevron"></span>
-          </div>
-        </summary>
+      <section id="quando" class="bloco bloco--creme">
         <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.quandoOnde.titulo">·</h2>
           <img class="ill ill-venue" src="assets/ill/venue.png" alt="Ilustração do espaço da festa">
           <div class="dados">
             <p>Data: <strong data-bind="evento.dataTexto">·</strong></p>
@@ -129,32 +121,30 @@
           </div>
           <img class="foto-jardim" src="assets/fotos/jardim.jpg" alt="Felipe e Mariana">
         </div>
-      </details>
+      </section>
 
-      <!-- ---- DRESS CODE ---- -->
-      <details id="dress" class="bloco bloco--bordo bloco--dress" open>
-        <summary>
-          <div class="bloco-inner">
-            <h2 class="script titulo-secao" data-bind="secoes.dressCode.titulo">·</h2>
-            <span class="bloco-chevron"></span>
-          </div>
-        </summary>
+      <!-- ---- DRESS CODE (igual ao PDF: renda + foto + referências) ---- -->
+      <section id="dress" class="bloco bloco--bordo bloco--dress">
         <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.dressCode.titulo">·</h2>
           <p class="dress-destaque" data-bind="secoes.dressCode.destaque">·</p>
           <p class="corpo" data-bind="secoes.dressCode.corpo">·</p>
+          <img class="dress-foto" src="assets/fotos/dress-ref-1.jpg" alt="Inspiração all black">
+          <p class="rotulo rotulo--claro">Referências</p>
+          <div id="dress-refs" class="dress-refs"></div>
         </div>
-      </details>
+      </section>
 
-      <!-- ---- RSVP ---- -->
-      <details id="rsvp" class="bloco bloco--creme" open>
-        <summary>
-          <div class="bloco-inner">
-            <img class="ill ill-envelope" src="assets/ill/envelope.png" alt="">
-            <h2 class="script titulo-secao" data-bind="rsvp.titulo">·</h2>
-            <span class="bloco-chevron"></span>
-          </div>
-        </summary>
+      <!-- ---- RSVP (texto escrito na folha do envelope) ---- -->
+      <section id="rsvp" class="bloco bloco--creme">
         <div class="bloco-inner">
+          <div class="envelope-wrap">
+            <img class="ill ill-envelope" src="assets/ill/envelope.png" alt="">
+            <div class="envelope-texto">
+              <img class="envelope-mono" src="assets/monograma.svg" alt="">
+              <span class="script envelope-titulo" data-bind="rsvp.titulo">·</span>
+            </div>
+          </div>
           <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
           <form id="rsvp-form">
             <div id="rsvp-pessoas"></div>
@@ -163,13 +153,14 @@
           </form>
           <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
         </div>
-      </details>
+      </section>
 
-      <!-- ---- PRESENTES ---- -->
-      <details id="presentes" class="bloco bloco--creme" open>
+      <!-- ---- PRESENTES (acordeão: abre e fecha) ---- -->
+      <details id="presentes" class="bloco bloco--creme bloco--acordeao">
         <summary>
           <div class="bloco-inner">
             <h2 class="script titulo-secao" data-bind="presentes.titulo">·</h2>
+            <span class="acordeao-dica">toque para ver a lista</span>
             <span class="bloco-chevron"></span>
           </div>
         </summary>
@@ -182,18 +173,13 @@
       </details>
 
       <!-- ---- RECADOS (bordô) ---- -->
-      <details id="recados" class="bloco bloco--bordo bloco--recados" open>
-        <summary>
-          <div class="bloco-inner">
-            <h2 class="script titulo-secao" data-bind="secoes.recados.titulo">·</h2>
-            <span class="bloco-chevron"></span>
-          </div>
-        </summary>
+      <section id="recados" class="bloco bloco--bordo bloco--recados">
         <div class="bloco-inner">
+          <h2 class="script titulo-secao" data-bind="secoes.recados.titulo">·</h2>
           <img class="ill ill-dogs" src="assets/ill/dogs.png" alt="">
           <div data-bind-paragrafos="secoes.recados.paragrafos"></div>
         </div>
-      </details>
+      </section>
 
       <!-- ---- MURAL (creme) ---- -->
       <section id="mural" class="bloco bloco--creme">

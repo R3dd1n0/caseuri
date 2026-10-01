@@ -116,6 +116,7 @@
     hydrateLinks();
     ocultarSecoesVazias();
     montarSlideshow();
+    montarDressRefs();
     iniciarContagem();
     montarRsvp();
     carregarPresentes();
@@ -178,6 +179,24 @@
   function reiniciarTimerSlide() {
     if (slideTimer) clearInterval(slideTimer);
     slideTimer = setInterval(function () { irSlide(slideIdx + 1, false); }, 4500);
+  }
+
+  // ---- Referências do dress code (fotos all black passando) ----
+  function montarDressRefs() {
+    var palco = $('#dress-refs'); if (!palco) return;
+    var srcs = ['dress-ref-2', 'dress-ref-3', 'dress-ref-4', 'dress-ref-5'];
+    palco.innerHTML = '';
+    var imgs = srcs.map(function (s, i) {
+      var im = el('img', { class: 'dref' + (i === 0 ? ' ativo' : ''),
+        src: 'assets/fotos/' + s + '.jpg', alt: 'Referência all black', loading: 'lazy' });
+      palco.appendChild(im); return im;
+    });
+    var idx = 0;
+    if (imgs.length > 1) setInterval(function () {
+      imgs[idx].classList.remove('ativo');
+      idx = (idx + 1) % imgs.length;
+      imgs[idx].classList.add('ativo');
+    }, 3500);
   }
   function abrirFoto(i) {
     if (!galeriaFotos.length) return;
