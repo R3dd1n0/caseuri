@@ -9,6 +9,7 @@
 :root {
   --bordo: #481110;          /* mahogany profundo (cor principal) */
   --bordo-esc: #380E0D;      /* mais fundo ainda (gradientes) */
+  --verde: #A6A888;          /* verde sálvia (Meadow Mist) */
   --creme: #FBF3E7;          /* creme/marfim (papel) */
   --creme-2: #FDF8F0;        /* creme levemente mais claro */
   --tinta: #2B1517;          /* quase-preto quente (texto no creme) */
@@ -233,27 +234,13 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 .bloco--bordo { background: var(--bordo); color: var(--creme); }
 .bloco--bordo .script { color: var(--creme); }
 .bloco--bordo .rotulo { color: rgba(255,255,255,.72); }
+.bloco--verde { background: var(--verde); color: var(--bordo); }
+.bloco--verde .script { color: var(--bordo); }
+.bloco--verde .rotulo { color: rgba(72,17,16,.62); }
 .bloco p { margin: 0 0 1rem; }
 
-/* ---- NOSSA HISTÓRIA (fundo escuro, continuando a capa; sem foto) ---- */
-.bloco--historia { background: var(--bordo); color: var(--creme); overflow: hidden; }
-.bloco--historia::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 64px; z-index: 0;
-  background: linear-gradient(to top, var(--creme), rgba(251,243,231,0));
-}
-.bloco--historia { padding-bottom: clamp(5rem, 14vw, 6.5rem); }
-.bloco--historia .bloco-inner { position: relative; z-index: 1; }
-.bloco--historia .titulo-secao { color: var(--creme); }
-.historia-texto p { color: rgba(255,255,255,.94); }
-
-/* Transições suaves (degradê) entre blocos bordô e creme, em vez de linha reta */
-.bloco--dress, .bloco--recados {
-  padding-top: clamp(5rem, 14vw, 6.5rem); padding-bottom: clamp(5rem, 14vw, 6.5rem);
-  background:
-    linear-gradient(to bottom, var(--creme), rgba(251,243,231,0) 64px) top/100% 64px no-repeat,
-    linear-gradient(to top, var(--creme), rgba(251,243,231,0) 64px) bottom/100% 64px no-repeat,
-    var(--bordo);
-}
+/* Nossa história (verde, texto bordô) */
+.historia-texto p { color: var(--bordo); }
 
 /* ---- SLIDESHOW ---- */
 .slideshow-palco {
@@ -280,8 +267,11 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 .ill { display: block; margin: 1rem auto; }
 .ill-venue { width: min(82%, 300px); }
 .ill-envelope { width: min(58%, 215px); margin-bottom: 1.4rem; }
-.ill-tower { width: min(26%, 110px); margin-top: 1.8rem; opacity: .95; }
+.ill-tower { width: min(34%, 130px); margin: 0 auto 1.2rem; }
 .ill-dogs { width: min(70%, 260px); }
+.ill-waiter { width: min(40%, 150px); margin: 0 auto .4rem; }
+.ill-rsvpfig { width: min(52%, 190px); margin: 0 auto .6rem; }
+.ill-mono { width: 88px; margin: 1.4rem auto 0; }
 
 /* ---- QUANDO & ONDE ---- */
 .dados { text-align: center; margin: 0 0 1rem; }
@@ -373,7 +363,10 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 
 /* ---- RECADOS (bordô) + MURAL (creme) ---- */
 .bloco--recados { text-align: center; }
-.bloco--recados p { color: rgba(255,255,255,.92); }
+.bloco--recados p { color: var(--bordo); }
+/* cartão creme do formulário de RSVP (sobre o verde) */
+.form-card { background: var(--creme); color: var(--tinta); border-radius: var(--raio); padding: 1.4rem 1.2rem; margin-top: .4rem; }
+.form-card .rsvp-grupo { color: var(--tinta); }
 .mural { display: grid; gap: 0.8rem; max-width: 480px; margin: 1.2rem auto 0; }
 .mural textarea { resize: vertical; min-height: 5rem; }
 .mural .botao { width: 100%; }

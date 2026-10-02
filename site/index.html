@@ -82,8 +82,8 @@
     </header>
 
     <main>
-      <!-- ---- NOSSA HISTÓRIA (texto sobre a foto, sempre visível) ---- -->
-      <section id="historia" class="bloco bloco--historia">
+      <!-- ---- NOSSA HISTÓRIA (verde) ---- -->
+      <section id="historia" class="bloco bloco--verde">
         <div class="bloco-inner">
           <h2 class="script titulo-secao" data-bind="secoes.historia.titulo">·</h2>
           <div class="historia-texto" data-bind-paragrafos="secoes.historia.paragrafos"></div>
@@ -125,6 +125,7 @@
       <!-- ---- DRESS CODE (igual ao PDF: renda + foto + referências) ---- -->
       <section id="dress" class="bloco bloco--bordo bloco--dress">
         <div class="bloco-inner">
+          <img class="ill ill-tower" src="assets/ill/tower.png" alt="">
           <h2 class="script titulo-secao" data-bind="secoes.dressCode.titulo">·</h2>
           <p class="dress-destaque" data-bind="secoes.dressCode.destaque">·</p>
           <p class="corpo" data-bind="secoes.dressCode.corpo">·</p>
@@ -133,16 +134,19 @@
       </section>
 
       <!-- ---- RSVP (texto escrito na folha do envelope) ---- -->
-      <section id="rsvp" class="bloco bloco--creme">
+      <section id="rsvp" class="bloco bloco--verde">
         <div class="bloco-inner">
+          <img class="ill ill-rsvpfig" src="assets/ill/rsvpfig.png" alt="">
           <h2 class="script titulo-secao" data-bind="rsvp.titulo">·</h2>
-          <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
-          <form id="rsvp-form">
-            <div id="rsvp-pessoas"></div>
-            <button class="botao" type="submit">Salvar resposta</button>
-            <div id="rsvp-msg" class="msg"></div>
-          </form>
-          <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
+          <div class="form-card">
+            <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
+            <form id="rsvp-form">
+              <div id="rsvp-pessoas"></div>
+              <button class="botao" type="submit">Salvar resposta</button>
+              <div id="rsvp-msg" class="msg"></div>
+            </form>
+            <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
+          </div>
         </div>
       </section>
 
@@ -150,6 +154,7 @@
       <details id="presentes" class="bloco bloco--creme bloco--acordeao">
         <summary>
           <div class="bloco-inner">
+            <img class="ill ill-waiter" src="assets/ill/waiter.png" alt="">
             <h2 class="script titulo-secao" data-bind="presentes.titulo">·</h2>
             <span class="acordeao-dica">toque para ver a lista</span>
             <span class="bloco-chevron"></span>
@@ -164,11 +169,11 @@
       </details>
 
       <!-- ---- RECADOS (bordô) ---- -->
-      <section id="recados" class="bloco bloco--bordo bloco--recados">
+      <section id="recados" class="bloco bloco--verde bloco--recados">
         <div class="bloco-inner">
           <h2 class="script titulo-secao" data-bind="secoes.recados.titulo">·</h2>
-          <img class="ill ill-dogs" src="assets/ill/dogs.png" alt="">
           <div data-bind-paragrafos="secoes.recados.paragrafos"></div>
+          <img class="ill ill-mono" src="assets/monograma.svg" alt="Monograma M F">
         </div>
       </section>
 
