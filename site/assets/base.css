@@ -7,8 +7,8 @@
  */
 
 :root {
-  --bordo: #740C23;          /* vinho/bordô (cor principal) */
-  --bordo-esc: #5A0A1B;      /* bordô mais fundo (gradientes) */
+  --bordo: #481110;          /* mahogany profundo (cor principal) */
+  --bordo-esc: #380E0D;      /* mais fundo ainda (gradientes) */
   --creme: #FBF3E7;          /* creme/marfim (papel) */
   --creme-2: #FDF8F0;        /* creme levemente mais claro */
   --tinta: #2B1517;          /* quase-preto quente (texto no creme) */
@@ -102,7 +102,7 @@ a { color: inherit; }
   background: var(--creme-2);
   color: var(--tinta);
 }
-.campo:focus { outline: 2px solid rgba(116,12,35,.35); outline-offset: 1px; }
+.campo:focus { outline: 2px solid rgba(72,17,16,.4); outline-offset: 1px; }
 label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 
 .msg { font-size: 0.92rem; margin-top: .4rem; }
@@ -138,7 +138,7 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
   height: var(--nav-altura);
   display: flex; align-items: center; gap: .6rem;
   padding: 0 .8rem;
-  background: rgba(116,12,35,.97);
+  background: rgba(72,17,16,.97);
   box-shadow: 0 1px 0 rgba(0,0,0,.08);
   transform: translateY(-100%);
   transition: transform .28s ease;
@@ -223,7 +223,7 @@ details.bloco > summary .titulo-secao { margin: 0; }
 details.bloco[open] > summary { margin-bottom: 1.3rem; }
 details.bloco[open] .bloco-chevron { transform: rotate(-135deg); margin-top: 0.9rem; }
 /* Acordeão da lista de presentes */
-.bloco--acordeao > summary:hover { background: rgba(116,12,35,.03); }
+.bloco--acordeao > summary:hover { background: rgba(72,17,16,.04); }
 .acordeao-dica {
   display: block; text-align: center; font-size: .72rem; letter-spacing: .18em;
   text-transform: uppercase; color: var(--tinta-suave); margin-top: .55rem;
@@ -235,21 +235,16 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 .bloco--bordo .rotulo { color: rgba(255,255,255,.72); }
 .bloco p { margin: 0 0 1rem; }
 
-/* ---- NOSSA HISTÓRIA (texto sobre a foto P&B, bem visível) ---- */
-.bloco--historia { background: var(--bordo-esc); color: var(--creme); overflow: hidden; }
-.bloco--historia::before {
-  content: ''; position: absolute; inset: 0; z-index: 0;
-  background: url('fotos/praia.jpg') center 28%/cover no-repeat;
-  filter: grayscale(1); opacity: .5;
-}
+/* ---- NOSSA HISTÓRIA (fundo escuro, continuando a capa; sem foto) ---- */
+.bloco--historia { background: var(--bordo); color: var(--creme); overflow: hidden; }
 .bloco--historia::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 64px; z-index: 0;
   background: linear-gradient(to top, var(--creme), rgba(251,243,231,0));
 }
 .bloco--historia { padding-bottom: clamp(5rem, 14vw, 6.5rem); }
 .bloco--historia .bloco-inner { position: relative; z-index: 1; }
-.bloco--historia .titulo-secao { color: var(--creme); text-shadow: 0 2px 16px rgba(0,0,0,.6); }
-.historia-texto p { color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.65); }
+.bloco--historia .titulo-secao { color: var(--creme); }
+.historia-texto p { color: rgba(255,255,255,.94); }
 
 /* Transições suaves (degradê) entre blocos bordô e creme, em vez de linha reta */
 .bloco--dress, .bloco--recados {
@@ -304,6 +299,12 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 .foto-jardim {
   width: min(78%, 320px); aspect-ratio: 3/4; object-fit: cover; margin: 1.8rem auto 0;
   filter: grayscale(1) contrast(1.03); border: 1px solid var(--linha); padding: 6px; background: var(--creme-2);
+}
+/* Foto do casal fechando o site */
+.bloco--final { padding-top: clamp(2.5rem, 8vw, 4rem); padding-bottom: clamp(2rem, 6vw, 3rem); }
+.foto-final {
+  width: min(84%, 430px); aspect-ratio: 3/4; object-fit: cover; margin: 0 auto;
+  filter: grayscale(1) contrast(1.03); border: 1px solid var(--linha); padding: 7px; background: var(--creme-2);
 }
 
 /* ---- DRESS CODE ---- */

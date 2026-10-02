@@ -39,6 +39,7 @@ window.CONTEUDO = {
       ],
       // linha do tempo (miniatura + foto grande em assets/historia/)
       fotos: [
+        { img: 'praia', ano: '2018' },
         { img: '0005', ano: '2018' },
         { img: '0007', ano: '2018' },
         { img: '0011', ano: '2019' },
@@ -57,7 +58,7 @@ window.CONTEUDO = {
       ]
     },
     quandoOnde: {
-      titulo: 'Quando e onde',
+      titulo: 'Quando e Onde',
       corpo: 'Reserve a data e venha comemorar com a gente.',
       estacionamento: 'As vagas de estacionamento na rua são poucas, então vale ir de aplicativo ou combinar uma carona.'
     },

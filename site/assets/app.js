@@ -116,7 +116,6 @@
     hydrateLinks();
     ocultarSecoesVazias();
     montarSlideshow();
-    montarDressRefs();
     iniciarContagem();
     montarRsvp();
     carregarPresentes();

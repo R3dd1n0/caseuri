@@ -25,7 +25,7 @@
   <meta property="og:image:height" content="1200">
   <meta property="og:url" content="https://felipemariana.com.br/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#740C23">
+  <meta name="theme-color" content="#481110">
 </head>
 <body>
 
@@ -119,7 +119,6 @@
             <a id="link-maps" class="botao botao--secundario" target="_blank" rel="noopener">Google Maps</a>
             <a id="link-waze" class="botao botao--secundario" target="_blank" rel="noopener">Waze</a>
           </div>
-          <img class="foto-jardim" src="assets/fotos/jardim.jpg" alt="Felipe e Mariana">
         </div>
       </section>
 
@@ -130,21 +129,13 @@
           <p class="dress-destaque" data-bind="secoes.dressCode.destaque">·</p>
           <p class="corpo" data-bind="secoes.dressCode.corpo">·</p>
           <img class="dress-foto" src="assets/fotos/dress-ref-1.jpg" alt="Inspiração all black">
-          <p class="rotulo rotulo--claro">Referências</p>
-          <div id="dress-refs" class="dress-refs"></div>
         </div>
       </section>
 
       <!-- ---- RSVP (texto escrito na folha do envelope) ---- -->
       <section id="rsvp" class="bloco bloco--creme">
         <div class="bloco-inner">
-          <div class="envelope-wrap">
-            <img class="ill ill-envelope" src="assets/ill/envelope.png" alt="">
-            <div class="envelope-texto">
-              <img class="envelope-mono" src="assets/monograma.svg" alt="">
-              <span class="envelope-titulo" data-bind="rsvp.titulo">·</span>
-            </div>
-          </div>
+          <h2 class="script titulo-secao" data-bind="rsvp.titulo">·</h2>
           <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
           <form id="rsvp-form">
             <div id="rsvp-pessoas"></div>
@@ -191,6 +182,13 @@
             <button class="botao" type="submit" data-bind="mural.botao">·</button>
             <div id="recado-status" class="msg"></div>
           </form>
+        </div>
+      </section>
+
+      <!-- ---- FINAL: foto do casal fechando o site ---- -->
+      <section class="bloco bloco--creme bloco--final">
+        <div class="bloco-inner">
+          <img class="foto-final" src="assets/fotos/jardim.jpg" alt="Felipe e Mariana">
         </div>
       </section>
     </main>
