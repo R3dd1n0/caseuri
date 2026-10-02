@@ -179,7 +179,7 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 }
 .capa-moldura {
   position: relative; width: min(74%, 330px); aspect-ratio: 3/4;
-  border: 1px solid rgba(255,255,255,.55); padding: 7px; margin: 0 auto;
+  margin: 0 auto; border-radius: 14px; overflow: hidden;
 }
 .capa-moldura img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.03); }
 .capa-data {
@@ -245,7 +245,7 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 /* ---- SLIDESHOW ---- */
 .slideshow-palco {
   position: relative; width: min(92%, 440px); margin: 1.1rem auto 0;
-  aspect-ratio: 4/5; border-radius: 6px; overflow: hidden; background: #0c0607;
+  aspect-ratio: 4/5; border-radius: 14px; overflow: hidden; background: #0c0607;
   box-shadow: 0 12px 30px rgba(0,0,0,.18);
 }
 .slide {
@@ -266,12 +266,12 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 /* ---- ILUSTRAÇÕES ---- */
 .ill { display: block; margin: 1rem auto; }
 .ill-venue { width: min(82%, 300px); }
-.ill-envelope { width: min(58%, 215px); margin-bottom: 1.4rem; }
-.ill-tower { width: min(34%, 130px); margin: 0 auto 1.2rem; }
-.ill-dogs { width: min(70%, 260px); }
+.ill-tower { width: min(36%, 140px); margin: 0 auto 1.2rem; }
 .ill-waiter { width: min(40%, 150px); margin: 0 auto .4rem; }
-.ill-rsvpfig { width: min(52%, 190px); margin: 0 auto .6rem; }
-.ill-mono { width: 88px; margin: 1.4rem auto 0; }
+.ill-rsvpfig { width: min(74%, 300px); margin: 0 auto .6rem; }
+.ill-angel { width: min(52%, 210px); margin: 0 auto .2rem; }
+.ill-lamp { width: min(32%, 120px); margin: 0 auto .4rem; }
+.ill-mono { width: 84px; margin: 1.6rem auto 0; }
 
 /* ---- QUANDO & ONDE ---- */
 .dados { text-align: center; margin: 0 0 1rem; }
@@ -294,7 +294,7 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 .bloco--final { padding-top: clamp(2.5rem, 8vw, 4rem); padding-bottom: clamp(2rem, 6vw, 3rem); }
 .foto-final {
   width: min(84%, 430px); aspect-ratio: 3/4; object-fit: cover; margin: 0 auto;
-  filter: grayscale(1) contrast(1.03); border: 1px solid var(--linha); padding: 7px; background: var(--creme-2);
+  filter: grayscale(1) contrast(1.03); border-radius: 14px;
 }
 
 /* ---- DRESS CODE ---- */
@@ -307,7 +307,7 @@ details.bloco--acordeao[open] .acordeao-dica { display: none; }
 .rotulo--claro { color: rgba(255,255,255,.78); margin: 1.6rem 0 .2rem; }
 .dress-foto {
   width: min(80%, 320px); aspect-ratio: 3/4; object-fit: cover; margin: 1.6rem auto .4rem;
-  filter: grayscale(1) contrast(1.04); border: 1px solid rgba(255,255,255,.45); padding: 6px;
+  filter: grayscale(1) contrast(1.04); border-radius: 14px;
 }
 .dress-refs {
   position: relative; width: min(82%, 330px); margin: .8rem auto 0;

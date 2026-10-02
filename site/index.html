@@ -85,6 +85,7 @@
       <!-- ---- NOSSA HISTÓRIA (verde) ---- -->
       <section id="historia" class="bloco bloco--verde">
         <div class="bloco-inner">
+          <img class="ill ill-angel" src="assets/ill/angel.png" alt="">
           <h2 class="script titulo-secao" data-bind="secoes.historia.titulo">·</h2>
           <div class="historia-texto" data-bind-paragrafos="secoes.historia.paragrafos"></div>
         </div>
@@ -138,15 +139,13 @@
         <div class="bloco-inner">
           <img class="ill ill-rsvpfig" src="assets/ill/rsvpfig.png" alt="">
           <h2 class="script titulo-secao" data-bind="rsvp.titulo">·</h2>
-          <div class="form-card">
-            <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
-            <form id="rsvp-form">
-              <div id="rsvp-pessoas"></div>
-              <button class="botao" type="submit">Salvar resposta</button>
-              <div id="rsvp-msg" class="msg"></div>
-            </form>
-            <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
-          </div>
+          <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
+          <form id="rsvp-form">
+            <div id="rsvp-pessoas"></div>
+            <button class="botao" type="submit">Salvar resposta</button>
+            <div id="rsvp-msg" class="msg"></div>
+          </form>
+          <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
         </div>
       </section>
 
@@ -171,6 +170,7 @@
       <!-- ---- RECADOS (bordô) ---- -->
       <section id="recados" class="bloco bloco--verde bloco--recados">
         <div class="bloco-inner">
+          <img class="ill ill-lamp" src="assets/ill/lamp.png" alt="">
           <h2 class="script titulo-secao" data-bind="secoes.recados.titulo">·</h2>
           <div data-bind-paragrafos="secoes.recados.paragrafos"></div>
           <img class="ill ill-mono" src="assets/monograma.svg" alt="Monograma M F">
