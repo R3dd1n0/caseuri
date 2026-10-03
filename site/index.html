@@ -85,7 +85,7 @@
       <!-- ---- NOSSA HISTÓRIA (verde) ---- -->
       <section id="historia" class="bloco bloco--verde">
         <div class="bloco-inner">
-          <img class="ill ill-angel" src="assets/ill/angel.png" alt="">
+          <img class="ill ill-angel" src="assets/ill/angel.png" alt="" loading="lazy" decoding="async">
           <h2 class="script titulo-secao" data-bind="secoes.historia.titulo">·</h2>
           <div class="historia-texto" data-bind-paragrafos="secoes.historia.paragrafos"></div>
         </div>
@@ -108,7 +108,7 @@
       <section id="quando" class="bloco bloco--creme">
         <div class="bloco-inner">
           <h2 class="script titulo-secao" data-bind="secoes.quandoOnde.titulo">·</h2>
-          <img class="ill ill-venue" src="assets/ill/venue.png" alt="Ilustração do espaço da festa">
+          <img class="ill ill-venue" src="assets/ill/venue.png" alt="Ilustração do espaço da festa" loading="lazy" decoding="async">
           <div class="dados">
             <p>Data: <strong data-bind="evento.dataTexto">·</strong></p>
             <p>Horário: <strong data-bind="evento.horario">·</strong></p>
@@ -126,18 +126,18 @@
       <!-- ---- DRESS CODE (igual ao PDF: renda + foto + referências) ---- -->
       <section id="dress" class="bloco bloco--bordo bloco--dress">
         <div class="bloco-inner">
-          <img class="ill ill-tower" src="assets/ill/tower.png" alt="">
+          <img class="ill ill-tower" src="assets/ill/tower.png" alt="" loading="lazy" decoding="async">
           <h2 class="script titulo-secao" data-bind="secoes.dressCode.titulo">·</h2>
           <p class="dress-destaque" data-bind="secoes.dressCode.destaque">·</p>
           <p class="corpo" data-bind="secoes.dressCode.corpo">·</p>
-          <img class="dress-foto" src="assets/fotos/dress-ref-1.jpg" alt="Inspiração all black">
+          <img class="dress-foto" src="assets/fotos/dress-ref-1.jpg" alt="Inspiração all black" loading="lazy" decoding="async">
         </div>
       </section>
 
       <!-- ---- RSVP (texto escrito na folha do envelope) ---- -->
       <section id="rsvp" class="bloco bloco--verde">
         <div class="bloco-inner">
-          <img class="ill ill-rsvpfig" src="assets/ill/rsvpfig.png" alt="">
+          <img class="ill ill-rsvpfig" src="assets/ill/rsvpfig.png" alt="" loading="lazy" decoding="async">
           <h2 class="script titulo-secao" data-bind="rsvp.titulo">·</h2>
           <p class="rsvp-grupo">Convite: <strong id="rsvp-grupo">·</strong></p>
           <form id="rsvp-form">
@@ -145,7 +145,7 @@
             <button class="botao" type="submit">Salvar resposta</button>
             <div id="rsvp-msg" class="msg"></div>
           </form>
-          <p id="rsvp-lembrete" class="lembrete" data-bind="rsvp.lembreteSemPresente" hidden>·</p>
+          <div id="rsvp-resumo" hidden></div>
         </div>
       </section>
 
@@ -153,7 +153,7 @@
       <details id="presentes" class="bloco bloco--creme bloco--acordeao">
         <summary>
           <div class="bloco-inner">
-            <img class="ill ill-waiter" src="assets/ill/waiter.png" alt="">
+            <img class="ill ill-waiter" src="assets/ill/waiter.png" alt="" loading="lazy" decoding="async">
             <h2 class="script titulo-secao" data-bind="presentes.titulo">·</h2>
             <span class="acordeao-dica">toque para ver a lista</span>
             <span class="bloco-chevron"></span>
@@ -170,10 +170,10 @@
       <!-- ---- RECADOS (bordô) ---- -->
       <section id="recados" class="bloco bloco--verde bloco--recados">
         <div class="bloco-inner">
-          <img class="ill ill-lamp" src="assets/ill/lamp.png" alt="">
+          <img class="ill ill-lamp" src="assets/ill/lamp.png" alt="" loading="lazy" decoding="async">
           <h2 class="script titulo-secao" data-bind="secoes.recados.titulo">·</h2>
           <div data-bind-paragrafos="secoes.recados.paragrafos"></div>
-          <img class="ill ill-mono" src="assets/monograma.svg" alt="Monograma M F">
+          <img class="ill ill-mono" src="assets/monograma.svg" alt="Monograma M F" loading="lazy" decoding="async">
         </div>
       </section>
 
@@ -193,7 +193,7 @@
       <!-- ---- FINAL: foto do casal fechando o site ---- -->
       <section class="bloco bloco--creme bloco--final">
         <div class="bloco-inner">
-          <img class="foto-final" src="assets/fotos/jardim.jpg" alt="Felipe e Mariana">
+          <img class="foto-final" src="assets/fotos/jardim.jpg" alt="Felipe e Mariana" loading="lazy" decoding="async">
         </div>
       </section>
     </main>

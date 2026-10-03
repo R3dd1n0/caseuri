@@ -268,12 +268,21 @@
     setInterval(tick, 1000);
   }
 
-  // ---- RSVP (lista nominal: uma pessoa por linha, sem "quantas pessoas") ----
+  // ---- RSVP (nominal; sem observação; vira resumo depois de responder) ----
+  function rsvpRespondeu(p) { return p.status === 'confirmado' || p.status === 'recusado'; }
+
   function montarRsvp() {
     $('#rsvp-grupo').textContent = estado.grupo;
+    var ja = false;
+    for (var i = 0; i < estado.pessoas.length; i++) { if (rsvpRespondeu(estado.pessoas[i])) { ja = true; break; } }
+    if (ja) renderRsvpResumo(); else renderRsvpForm();
+  }
+
+  function renderRsvpForm() {
+    mostrar($('#rsvp-resumo'), false);
+    mostrar($('#rsvp-form'), true);
     var cont = $('#rsvp-pessoas');
     cont.innerHTML = '';
-
     estado.pessoas.forEach(function (p) {
       var bloco = el('div', { class: 'pessoa-rsvp' });
       bloco.appendChild(el('strong', { text: p.nome }));
@@ -290,25 +299,15 @@
         opcoes.appendChild(lbl);
       });
       bloco.appendChild(opcoes);
-      var obs = el('input', { class: 'campo', type: 'text', placeholder: 'Observação (opcional)' });
-      obs.setAttribute('data-obs', p.id);
-      if (p.obs) obs.value = p.obs;
-      bloco.appendChild(obs);
       cont.appendChild(bloco);
     });
 
-    // onsubmit (não addEventListener) evita handler duplicado se remontar.
     $('#rsvp-form').onsubmit = function (ev) {
       ev.preventDefault();
       var msg = $('#rsvp-msg');
       var respostas = estado.pessoas.map(function (p) {
         var sel = document.querySelector('input[name="rsvp-' + p.id + '"]:checked');
-        var obsEl = document.querySelector('[data-obs="' + p.id + '"]');
-        return {
-          id: p.id,
-          status: sel ? sel.value : (p.status || 'pendente'),
-          obs: obsEl ? obsEl.value : ''
-        };
+        return { id: p.id, status: sel ? sel.value : (p.status || 'pendente'), obs: '' };
       });
       if (!respostas.some(function (r) { return r.status !== 'pendente'; })) {
         msg.textContent = 'Marque "Vou" ou "Não vou" para pelo menos uma pessoa.';
@@ -318,13 +317,37 @@
       msg.textContent = 'Salvando…'; msg.className = 'msg';
       window.API.rsvpSalvar(estado.token, respostas).then(function (resp) {
         if (resp && resp.ok) {
-          estado.pessoas = resp.pessoas || estado.pessoas;
-          msg.textContent = 'Resposta salva! 🎉'; msg.className = 'msg msg--ok';
+          if (resp.pessoas) { estado.pessoas = resp.pessoas; }
+          else { respostas.forEach(function (r) {
+            for (var k = 0; k < estado.pessoas.length; k++) { if (estado.pessoas[k].id === r.id) estado.pessoas[k].status = r.status; }
+          }); }
+          msg.textContent = ''; msg.className = 'msg';
+          renderRsvpResumo();
         } else {
           msg.textContent = 'Não deu para salvar. Tente de novo.'; msg.className = 'msg msg--erro';
         }
       }).catch(function () { msg.textContent = 'Erro de conexão.'; msg.className = 'msg msg--erro'; });
     };
+  }
+
+  function renderRsvpResumo() {
+    mostrar($('#rsvp-form'), false);
+    var resumo = $('#rsvp-resumo');
+    resumo.innerHTML = '';
+    estado.pessoas.forEach(function (p) {
+      var conf = p.status === 'confirmado', rec = p.status === 'recusado';
+      var linha = el('div', { class: 'pessoa-rsvp resumo-linha' });
+      linha.appendChild(el('strong', { text: p.nome }));
+      linha.appendChild(el('span', {
+        class: 'resumo-status ' + (conf ? 'ok' : (rec ? 'no' : '')),
+        text: conf ? 'Confirmado' : (rec ? 'Não vai' : 'Sem resposta')
+      }));
+      resumo.appendChild(linha);
+    });
+    var btn = el('button', { class: 'botao botao--secundario', type: 'button', text: 'Mudar resposta' });
+    btn.addEventListener('click', function () { $('#rsvp-msg').textContent = ''; renderRsvpForm(); });
+    resumo.appendChild(btn);
+    mostrar(resumo, true);
   }
 
   function atualizarLembrete() {
