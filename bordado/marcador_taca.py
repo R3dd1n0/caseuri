@@ -145,18 +145,24 @@ def main():
                     help='meio do texto em graus (padrão: -90 = embaixo com 2 linhas, -15 com 1)')
     ap.add_argument('--entrelinha', type=float, default=1.55,
                     help='distância entre as linhas de base, em alturas de maiúscula')
-    ap.add_argument('--letras', type=float, default=3,
+    ap.add_argument('--letras', type=float, default=6,
                     help='espaço extra entre letras (unidades da fonte); compensa o aperto da curva')
     ap.add_argument('--raio', type=float, default=None,
                     help='raio do pé do texto (1 linha) ou da linha de base de fora (2 linhas)')
     ap.add_argument('--altura', type=float, default=None, help='altura máxima da maiúscula M (mm)')
-    ap.add_argument('--arco', type=float, default=240.0)
+    ap.add_argument('--arco', type=float, default=280.0)
     ap.add_argument('--escala', type=float, default=0, help='escala fixa da fonte (padrão: a maior em que todos cabem)')
     ap.add_argument('--borda', type=float, default=1.6, help='largura do satin do contorno (mm)')
     ap.add_argument('--margem', type=float, default=2.0, help='folga mínima entre o nome e o contorno (mm)')
-    ap.add_argument('--espaco', type=float, default=15, help='espaço extra entre palavras (unidades da fonte)')
+    ap.add_argument('--espaco', type=float, default=25, help='espaço extra entre palavras (unidades da fonte)')
     ap.add_argument('--engrossar', type=float, default=0.0,
                     help='mm mínimos somados a cada lado das colunas de satin das letras (veludo)')
+    ap.add_argument('--densidade', type=float, default=0,
+                    help='distância entre pontos do satin das letras, mm (0 = da fonte, ~0,40)')
+    ap.add_argument('--puxada', type=float, default=1.0,
+                    help='multiplica a compensação de puxada das letras (<1 = traço mais fino)')
+    ap.add_argument('--base', choices=('fonte', 'centro'), default='fonte',
+                    help='base das letras: a da fonte (zigue-zague) ou só uma costura no centro')
     ap.add_argument('--veludo', action='store_true',
                     help='reforça a base das letras (contorno + centro) para tecido com pelo')
     ap.add_argument('--cor', default='#6B7B2E', help='cor da linha (verde-oliva)')
@@ -164,7 +170,7 @@ def main():
     ap.add_argument('--saida', default='saida-taca')
     args = ap.parse_args()
     if args.angulo is None:
-        args.angulo = -90.0 if args.linhas == 2 else -35.0
+        args.angulo = -90.0 if args.linhas == 2 else -65.0
     if args.raio is None:
         args.raio = 26.0 if args.linhas == 2 else 28.0
     if args.altura is None:
@@ -234,7 +240,15 @@ def main():
             if no.get(NS + 'satin_column') != 'True':
                 continue
             pc = float(no.get(NS + 'pull_compensation_mm') or 0)
-            no.set(NS + 'pull_compensation_mm', f'{max(pc * fator, minimo):.3f}')
+            no.set(NS + 'pull_compensation_mm', f'{max(pc * fator * args.puxada, minimo):.3f}')
+            if args.densidade:
+                no.set(NS + 'zigzag_spacing_mm', f'{args.densidade:.2f}')
+            if args.base == 'centro':
+                # letra pequena: só uma costura no meio do traço, sem zigue-zague
+                # por baixo (que estufa e borra traços estreitos)
+                no.set(NS + 'zigzag_underlay', 'False')
+                no.set(NS + 'contour_underlay', 'False')
+                no.set(NS + 'center_walk_underlay', 'True')
             if args.veludo:
                 no.set(NS + 'contour_underlay', 'True')
                 no.set(NS + 'center_walk_underlay', 'True')

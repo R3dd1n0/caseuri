@@ -38,9 +38,12 @@ python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
 - Letras SEM reforço de veludo por padrão (o 1º teste encheu demais as letras).
   Para tecido com pelo: `--veludo` (base extra) e/ou `--engrossar 0.1`.
 - Legibilidade (após o 2º teste, 05/10): maiúscula de **9 mm** (`--altura`),
-  espaço extra entre letras (`--letras 3`, compensa o aperto do topo das letras
-  na curva) e entre palavras (`--espaco 15`, senão o espaço some na curva), nome
-  ocupando até 240° de curva (`--arco`) com o meio em `--angulo -35`.
+  letras bem separadas (`--letras 6`, compensa o aperto do topo das letras na
+  curva) e palavras também (`--espaco 25`, senão o espaço some na curva), nome
+  ocupando até 280° de curva (`--arco`) com o meio em `--angulo -65`.
+- Nitidez só pelo arquivo (teste 4, A x B): `--densidade 0.5` (satin mais
+  aberto que o 0,40 da fonte), `--base centro` (sem zigue-zague por baixo, que
+  estufa letra pequena) e `--puxada 0.6` (traço um pouco mais fino).
   `--linhas 2` (nome e sobrenome em duas curvas) existe, mas a letra sai MENOR
   por causa do furo.
 - `--fonte "Allegria 55"`, `--angulo -15`
