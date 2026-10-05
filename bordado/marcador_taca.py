@@ -138,14 +138,23 @@ def main():
     ap.add_argument('--inkstitch', required=True, help='pasta do código-fonte do Ink/Stitch (com fonts/)')
     ap.add_argument('--nomes', required=True, help='um convidado por linha: "Nome Sobrenome"')
     ap.add_argument('--fonte', default='Magnolia KOR')
-    ap.add_argument('--angulo', type=float, default=-15.0)
-    ap.add_argument('--raio', type=float, default=28.0)
-    ap.add_argument('--altura', type=float, default=7.0, help='altura máxima da maiúscula M (mm)')
-    ap.add_argument('--arco', type=float, default=160.0)
+    ap.add_argument('--linhas', type=int, choices=(1, 2), default=1,
+                    help='1 = numa curva só (padrão); 2 = nome e sobrenome em duas curvas embaixo '
+                         '(o furo limita: a letra sai MENOR)')
+    ap.add_argument('--angulo', type=float, default=None,
+                    help='meio do texto em graus (padrão: -90 = embaixo com 2 linhas, -15 com 1)')
+    ap.add_argument('--entrelinha', type=float, default=1.55,
+                    help='distância entre as linhas de base, em alturas de maiúscula')
+    ap.add_argument('--letras', type=float, default=3,
+                    help='espaço extra entre letras (unidades da fonte); compensa o aperto da curva')
+    ap.add_argument('--raio', type=float, default=None,
+                    help='raio do pé do texto (1 linha) ou da linha de base de fora (2 linhas)')
+    ap.add_argument('--altura', type=float, default=None, help='altura máxima da maiúscula M (mm)')
+    ap.add_argument('--arco', type=float, default=240.0)
     ap.add_argument('--escala', type=float, default=0, help='escala fixa da fonte (padrão: a maior em que todos cabem)')
     ap.add_argument('--borda', type=float, default=1.6, help='largura do satin do contorno (mm)')
     ap.add_argument('--margem', type=float, default=2.0, help='folga mínima entre o nome e o contorno (mm)')
-    ap.add_argument('--espaco', type=float, default=0, help='espaço extra entre palavras (unidades da fonte)')
+    ap.add_argument('--espaco', type=float, default=15, help='espaço extra entre palavras (unidades da fonte)')
     ap.add_argument('--engrossar', type=float, default=0.0,
                     help='mm mínimos somados a cada lado das colunas de satin das letras (veludo)')
     ap.add_argument('--veludo', action='store_true',
@@ -154,6 +163,12 @@ def main():
     ap.add_argument('--fundo', default='#740C23', help='cor do veludo na prévia')
     ap.add_argument('--saida', default='saida-taca')
     args = ap.parse_args()
+    if args.angulo is None:
+        args.angulo = -90.0 if args.linhas == 2 else -35.0
+    if args.raio is None:
+        args.raio = 26.0 if args.linhas == 2 else 28.0
+    if args.altura is None:
+        args.altura = 11.0 if args.linhas == 2 else 9.0
 
     nomes = ler_nomes(args.nomes)
     errados = [n for n in nomes if len(n.split()) != 2]
@@ -224,36 +239,76 @@ def main():
                 no.set(NS + 'contour_underlay', 'True')
                 no.set(NS + 'center_walk_underlay', 'True')
 
-    def plano(texto, escala, em_arco):
+    def grupo_texto(texto, escala):
         grupo = Group()
         grupo.set('inkstitch:lettering', json.dumps({
             'text': texto, 'font': fonte.marked_custom_font_id, 'scale': round(escala * 100, 3),
             'back_and_forth': False, 'trim_option': 2, 'use_trim_symbols': False, 'color_sort': 0,
-            'text_align': 0, 'letter_spacing': 0, 'word_spacing': args.espaco, 'line_height': 0}))
+            'text_align': 0, 'letter_spacing': args.letras, 'word_spacing': args.espaco, 'line_height': 0}))
         ext.svg.append(grupo)
         grupo.set('transform', get_correction_transform(grupo, child=True))
         destino = Group()
         grupo.append(destino)
-        fonte.render_text(texto, destino, trim_option=2, word_spacing=args.espaco)
+        fonte.render_text(texto, destino, trim_option=2, letter_spacing=args.letras, word_spacing=args.espaco)
         destino.set('transform', f'scale({escala})')
-        if em_arco:
-            # arco no sentido anti-horário: o "em cima" das letras fica para o centro
-            a0 = math.radians(args.angulo - 150)
-            pts = [(CX + args.raio * math.cos(a0 + math.radians(i)),
-                    CY - args.raio * math.sin(a0 + math.radians(i))) for i in range(0, 301)]
-            caminho = PathElement()
-            caminho.set('d', 'M ' + ' L '.join(f'{x:.4f},{y:.4f}' for x, y in pts))
-            caminho.set('style', 'fill:none;stroke:#000000;stroke-width:0.1')
-            ext.svg.append(caminho)
-            TextAlongPath(ext.svg, grupo, caminho, 'center', 'top')
-            caminho.delete()
-        ajustes(grupo, escala)
+        return grupo
+
+    def no_arco(grupo, raio, alinhamento):
+        # arco no sentido anti-horário: o "em cima" das letras fica para o centro
+        a0 = math.radians(args.angulo - 150)
+        pts = [(CX + raio * math.cos(a0 + math.radians(i)),
+                CY - raio * math.sin(a0 + math.radians(i))) for i in range(0, 301)]
+        caminho = PathElement()
+        caminho.set('d', 'M ' + ' L '.join(f'{x:.4f},{y:.4f}' for x, y in pts))
+        caminho.set('style', 'fill:none;stroke:#000000;stroke-width:0.1')
+        ext.svg.append(caminho)
+        TextAlongPath(ext.svg, grupo, caminho, 'center', alinhamento)
+        caminho.delete()
+
+    def para_pontos(grupos_svg, escala):
+        for grupo in grupos_svg:
+            ajustes(grupo, escala)
         ext.get_elements()
         grupos = ext.elements_to_stitch_groups(ext.elements)
         sp = stitch_groups_to_stitch_plan(grupos, collapse_len=meta['collapse_len_mm'],
                                           min_stitch_len=meta['min_stitch_len_mm'])
-        grupo.delete()
+        for grupo in grupos_svg:
+            grupo.delete()
         return sp
+
+    desvio_base = {}
+
+    def desvio_linha_de_base(escala):
+        """Quanto a linha de base das letras fica além do caminho no modo 'baseline'
+        (as fontes não desenham a base em y=0). Medido com um 'M' no arco."""
+        if escala not in desvio_base:
+            g = grupo_texto('M', escala)
+            no_arco(g, 20.0, 'baseline')
+            sp = para_pontos([g], escala)
+            pts = [(s.x / PIXELS_PER_MM - CX, s.y / PIXELS_PER_MM - CY) for cb in sp for s in cb]
+            desvio_base[escala] = max(math.hypot(x, y) for x, y in pts) - 20.0
+        return desvio_base[escala]
+
+    def raios_das_linhas(escala):
+        """Raio da linha de base de cada palavra (modo 2 linhas): sobrenome por fora,
+        nome por dentro, separados por --entrelinha x altura da maiúscula."""
+        altura = cap_por_escala * escala
+        return [args.raio - args.entrelinha * altura, args.raio]
+
+    def plano(texto, escala, em_arco):
+        if not em_arco:
+            return para_pontos([grupo_texto(texto, escala)], escala)
+        if args.linhas == 1:
+            g = grupo_texto(texto, escala)
+            no_arco(g, args.raio, 'top')
+            return para_pontos([g], escala)
+        desvio = desvio_linha_de_base(escala)
+        grupos = []
+        for palavra, raio in zip(texto.split(), raios_das_linhas(escala)):
+            g = grupo_texto(palavra, escala)
+            no_arco(g, raio - desvio, 'baseline')
+            grupos.append(g)
+        return para_pontos(grupos, escala)
 
     def medida_mm(sp):
         x0, y0, x1, y1 = sp.bounding_box
@@ -289,8 +344,15 @@ def main():
         """Maior escala em que o nome cabe (altura, arco e folga do contorno)."""
         escala = escala_pela_maiuscula
         for _ in range(2):  # 2ª passada corrige o que não escala linearmente
-            w, h = medida_mm(plano(texto, escala, False))
-            escala *= min(1.0, limite_arco / w)
+            if args.linhas == 1:
+                w, h = medida_mm(plano(texto, escala, False))
+                escala *= min(1.0, limite_arco / w)
+            else:
+                fator = 1.0
+                for palavra, raio in zip(texto.split(), raios_das_linhas(escala)):
+                    w, h = medida_mm(plano(palavra, escala, False))
+                    fator = min(fator, raio * math.radians(args.arco) / w)
+                escala *= fator
         while folga(nome_no_arco(texto, escala, tmp)) < args.margem:
             escala *= 0.98
         return escala
@@ -300,6 +362,7 @@ def main():
     escala_pela_maiuscula = 1.0
     for _ in range(2):
         escala_pela_maiuscula *= args.altura / medida_mm(plano('M', escala_pela_maiuscula, False))[1]
+    cap_por_escala = args.altura / escala_pela_maiuscula
 
     # MESMO tamanho de letra para todos: a escala é a do nome que mais precisa
     # encolher (ou a informada em --escala, para repetir o tamanho de outro lote).
