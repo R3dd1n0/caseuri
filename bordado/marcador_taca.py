@@ -145,16 +145,16 @@ def main():
                     help='meio do texto em graus (padrão: -90 = embaixo com 2 linhas, -15 com 1)')
     ap.add_argument('--entrelinha', type=float, default=1.55,
                     help='distância entre as linhas de base, em alturas de maiúscula')
-    ap.add_argument('--letras', type=float, default=6,
+    ap.add_argument('--letras', type=float, default=3,
                     help='espaço extra entre letras (unidades da fonte); compensa o aperto da curva')
     ap.add_argument('--raio', type=float, default=None,
                     help='raio do pé do texto (1 linha) ou da linha de base de fora (2 linhas)')
     ap.add_argument('--altura', type=float, default=None, help='altura máxima da maiúscula M (mm)')
-    ap.add_argument('--arco', type=float, default=280.0)
+    ap.add_argument('--arco', type=float, default=240.0)
     ap.add_argument('--escala', type=float, default=0, help='escala fixa da fonte (padrão: a maior em que todos cabem)')
     ap.add_argument('--borda', type=float, default=1.6, help='largura do satin do contorno (mm)')
     ap.add_argument('--margem', type=float, default=2.0, help='folga mínima entre o nome e o contorno (mm)')
-    ap.add_argument('--espaco', type=float, default=25, help='espaço extra entre palavras (unidades da fonte)')
+    ap.add_argument('--espaco', type=float, default=15, help='espaço extra entre palavras (unidades da fonte)')
     ap.add_argument('--engrossar', type=float, default=0.0,
                     help='mm mínimos somados a cada lado das colunas de satin das letras (veludo)')
     ap.add_argument('--densidade', type=float, default=0,
@@ -170,7 +170,7 @@ def main():
     ap.add_argument('--saida', default='saida-taca')
     args = ap.parse_args()
     if args.angulo is None:
-        args.angulo = -90.0 if args.linhas == 2 else -65.0
+        args.angulo = -90.0 if args.linhas == 2 else -35.0
     if args.raio is None:
         args.raio = 26.0 if args.linhas == 2 else 28.0
     if args.altura is None:
