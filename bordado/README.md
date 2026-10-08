@@ -42,9 +42,11 @@ python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
   das letras na curva) e entre palavras (`--espaco 15`, senão o espaço some na
   curva), nome ocupando até 240° de curva (`--arco`) com o meio em
   `--angulo -35`. (Mais separado que isso foi testado e recusado.)
-- Nitidez só pelo arquivo (teste 4, A x B): `--densidade 0.5` (satin mais
-  aberto que o 0,40 da fonte), `--base centro` (sem zigue-zague por baixo, que
-  estufa letra pequena) e `--puxada 0.6` (traço um pouco mais fino).
+- Nitidez (teste 4, 08/10: o **modelo B venceu e é o padrão**): satin das
+  letras mais aberto (`--densidade 0.5`, a fonte usa ~0,40), base só com uma
+  costura no centro (`--base centro`, sem o zigue-zague que estufa letra
+  pequena) e traço um pouco mais fino (`--puxada 0.6`). Para voltar ao modelo A:
+  `--densidade 0 --base fonte --puxada 1`.
   `--linhas 2` (nome e sobrenome em duas curvas) existe, mas a letra sai MENOR
   por causa do furo.
 - `--fonte "Allegria 55"`, `--angulo -15`

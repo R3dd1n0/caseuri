@@ -157,11 +157,11 @@ def main():
     ap.add_argument('--espaco', type=float, default=15, help='espaço extra entre palavras (unidades da fonte)')
     ap.add_argument('--engrossar', type=float, default=0.0,
                     help='mm mínimos somados a cada lado das colunas de satin das letras (veludo)')
-    ap.add_argument('--densidade', type=float, default=0,
+    ap.add_argument('--densidade', type=float, default=0.5,
                     help='distância entre pontos do satin das letras, mm (0 = da fonte, ~0,40)')
-    ap.add_argument('--puxada', type=float, default=1.0,
+    ap.add_argument('--puxada', type=float, default=0.6,
                     help='multiplica a compensação de puxada das letras (<1 = traço mais fino)')
-    ap.add_argument('--base', choices=('fonte', 'centro'), default='fonte',
+    ap.add_argument('--base', choices=('fonte', 'centro'), default='centro',
                     help='base das letras: a da fonte (zigue-zague) ou só uma costura no centro')
     ap.add_argument('--veludo', action='store_true',
                     help='reforça a base das letras (contorno + centro) para tecido com pelo')
