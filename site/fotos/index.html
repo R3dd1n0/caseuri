@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Felipe &amp; Mariana · Fotos</title>
+  <meta name="theme-color" content="#6b1e2e">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fotos.css">
+</head>
+<body>
+  <main class="tela">
+    <header class="capa">
+      <div class="monograma">F<span>&amp;</span>M</div>
+      <h1>Felipe &amp; Mariana</h1>
+      <p class="data">12 . 11 . 2026</p>
+      <p class="chamada">Compartilhe suas fotos e vídeos com a gente 💛</p>
+    </header>
+
+    <section class="cartao">
+      <label class="campo-nome">
+        <span>Seu nome <em>(opcional)</em></span>
+        <input id="nome" type="text" autocomplete="name" placeholder="Como você quer aparecer">
+      </label>
+
+      <button id="btn-add" class="botao" type="button" disabled>Adicionar fotos e vídeos</button>
+      <input id="arquivo" type="file" accept="image/*,video/*,.heic,.heif,.mov" multiple hidden>
+
+      <p id="aviso" class="aviso">Preparando…</p>
+
+      <!-- honeypot anti-bot (fica escondido; humano nunca preenche) -->
+      <input id="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+
+      <div id="lista" class="lista"></div>
+      <div id="resumo" class="resumo" hidden></div>
+    </section>
+
+    <footer class="rodape">Suas fotos vão direto para o álbum dos noivos.</footer>
+  </main>
+
+  <script src="fotos-config.js"></script>
+  <script src="fotos.js"></script>
+</body>
+</html>
