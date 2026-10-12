@@ -72,9 +72,92 @@
     });
   }
 
+  // ---- Galeria (álbum) ----------------------------------------------------
+  var tabEnviar  = document.getElementById('tab-enviar');
+  var tabAlbum   = document.getElementById('tab-album');
+  var paneEnviar = document.getElementById('pane-enviar');
+  var paneAlbum  = document.getElementById('pane-album');
+  var grade      = document.getElementById('grade');
+  var albumMsg   = document.getElementById('album-msg');
+  var lb         = document.getElementById('lb');
+  var lbMedia    = document.getElementById('lb-media');
+  var itensAlbum = [], filtroAtual = 'todos', albumCarregado = false, lbLista = [], lbIdx = 0;
+
+  function setupAbas() {
+    tabEnviar.addEventListener('click', function () { mostrarPane('enviar'); });
+    tabAlbum.addEventListener('click', function () { mostrarPane('album'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (b) {
+      b.addEventListener('click', function () {
+        filtroAtual = b.getAttribute('data-f');
+        Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (x) {
+          x.classList.toggle('ativa', x === b);
+        });
+        renderGrade();
+      });
+    });
+    document.getElementById('lb-fechar').addEventListener('click', fecharLb);
+    document.getElementById('lb-prev').addEventListener('click', function () { navLb(-1); });
+    document.getElementById('lb-next').addEventListener('click', function () { navLb(1); });
+    lb.addEventListener('click', function (e) { if (e.target === lb) fecharLb(); });
+  }
+  function mostrarPane(qual) {
+    paneEnviar.hidden = qual !== 'enviar';
+    paneAlbum.hidden  = qual !== 'album';
+    tabEnviar.classList.toggle('ativa', qual === 'enviar');
+    tabAlbum.classList.toggle('ativa', qual === 'album');
+    if (qual === 'album' && !albumCarregado) carregarAlbum();
+  }
+  function carregarAlbum() {
+    albumMsg.hidden = false; albumMsg.classList.remove('erro'); albumMsg.textContent = 'Carregando…';
+    grade.innerHTML = '';
+    fetch(BASE + '?action=listar').then(function (r) { return r.json(); }).then(function (r) {
+      albumCarregado = true;
+      itensAlbum = (r && r.itens) || [];
+      renderGrade();
+    }).catch(function () {
+      albumMsg.hidden = false; albumMsg.classList.add('erro');
+      albumMsg.textContent = 'Não deu pra carregar agora. Tente de novo.';
+    });
+  }
+  function thumbUrl(id, w) { return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 600); }
+  function renderGrade() {
+    grade.innerHTML = '';
+    var lista = itensAlbum.filter(function (it) { return filtroAtual === 'todos' || it.cat === filtroAtual; });
+    if (!lista.length) {
+      albumMsg.hidden = false; albumMsg.classList.remove('erro');
+      albumMsg.textContent = albumCarregado ? 'Nada por aqui ainda. Envie a primeira foto!' : 'Carregando…';
+      return;
+    }
+    albumMsg.hidden = true;
+    lista.forEach(function (it, idx) {
+      var cel = document.createElement('button'); cel.type = 'button'; cel.className = 'cel';
+      var img = document.createElement('img'); img.loading = 'lazy'; img.alt = ''; img.src = thumbUrl(it.id, 600);
+      cel.appendChild(img);
+      if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
+      cel.addEventListener('click', function () { abrirLb(lista, idx); });
+      grade.appendChild(cel);
+    });
+  }
+  function abrirLb(lista, idx) { lbLista = lista; lbIdx = idx; mostrarLb(); lb.hidden = false; document.body.style.overflow = 'hidden'; }
+  function fecharLb() { lb.hidden = true; lbMedia.innerHTML = ''; document.body.style.overflow = ''; }
+  function navLb(d) { if (!lbLista.length) return; lbIdx = (lbIdx + d + lbLista.length) % lbLista.length; mostrarLb(); }
+  function mostrarLb() {
+    var it = lbLista[lbIdx]; lbMedia.innerHTML = '';
+    if (it.cat === 'video') {
+      var ifr = document.createElement('iframe');
+      ifr.src = 'https://drive.google.com/file/d/' + it.id + '/preview';
+      ifr.setAttribute('allow', 'autoplay'); ifr.setAttribute('allowfullscreen', '');
+      lbMedia.appendChild(ifr);
+    } else {
+      var img = document.createElement('img'); img.alt = ''; img.src = thumbUrl(it.id, 1600);
+      lbMedia.appendChild(img);
+    }
+  }
+
   // ---- Inicialização ------------------------------------------------------
   function iniciar() {
     montarNome();
+    setupAbas();
     if (!BASE || BASE.indexOf('COLE_AQUI') === 0) {
       return falhaInicial('Configuração pendente (fotos-config.js).');
     }
@@ -239,6 +322,7 @@
   function finalizar() {
     var total = cont.ok + cont.erro;
     if (!total) return;
+    if (cont.ok) albumCarregado = false; // recarrega o álbum na próxima vez que abrir
     elResumo.hidden = false;
     var html = '<div class="selo">Obrigado 💛</div>';
     if (cont.ok)  html += '<p>' + cont.ok + ' arquivo(s) enviado(s) com sucesso.</p>';

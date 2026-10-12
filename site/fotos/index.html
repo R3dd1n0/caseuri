@@ -17,10 +17,16 @@
       <div class="monograma">F<span>&amp;</span>M</div>
       <h1>Felipe &amp; Mariana</h1>
       <p class="data">12 . 11 . 2026</p>
-      <p class="chamada">Compartilhe suas fotos e vídeos com a gente 💛</p>
+      <p class="chamada">Compartilhe suas fotos e vídeos com a gente</p>
     </header>
 
-    <section class="cartao">
+    <nav class="abas" aria-label="Seções">
+      <button id="tab-enviar" class="aba ativa" type="button">Enviar</button>
+      <button id="tab-album" class="aba" type="button">Álbum</button>
+    </nav>
+
+    <!-- ====== ENVIAR ====== -->
+    <section id="pane-enviar" class="cartao">
       <label class="campo-nome">
         <span>Seu nome <em>(opcional)</em></span>
         <input id="nome" type="text" autocomplete="name" placeholder="Como você quer aparecer">
@@ -30,16 +36,33 @@
       <input id="arquivo" type="file" accept="image/*,video/*,.heic,.heif,.mov" multiple hidden>
 
       <p id="aviso" class="aviso">Preparando…</p>
-
-      <!-- honeypot anti-bot (fica escondido; humano nunca preenche) -->
       <input id="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
 
       <div id="lista" class="lista"></div>
       <div id="resumo" class="resumo" hidden></div>
     </section>
 
+    <!-- ====== ÁLBUM ====== -->
+    <section id="pane-album" hidden>
+      <div class="filtros">
+        <button class="filtro ativa" data-f="todos" type="button">Todos</button>
+        <button class="filtro" data-f="foto" type="button">Fotos</button>
+        <button class="filtro" data-f="video" type="button">Vídeos</button>
+      </div>
+      <div id="grade" class="grade"></div>
+      <p id="album-msg" class="aviso">Carregando…</p>
+    </section>
+
     <footer class="rodape">Suas fotos vão direto para o álbum dos noivos.</footer>
   </main>
+
+  <!-- Lightbox -->
+  <div id="lb" class="lb" hidden>
+    <button id="lb-fechar" class="lb-x" type="button" aria-label="Fechar">✕</button>
+    <button id="lb-prev" class="lb-nav lb-prev" type="button" aria-label="Anterior">‹</button>
+    <div id="lb-media" class="lb-media"></div>
+    <button id="lb-next" class="lb-nav lb-next" type="button" aria-label="Próxima">›</button>
+  </div>
 
   <script src="fotos-config.js"></script>
   <script src="fotos.js"></script>
