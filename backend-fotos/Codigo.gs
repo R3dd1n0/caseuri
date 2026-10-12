@@ -271,6 +271,23 @@ function setupAlbum() {
   Logger.log('Planilha pronta. Confira as Script Properties (ver docs/SETUP-FOTOS.md).');
 }
 
+/**
+ * DIAGNÓSTICO — rode no editor e veja o Registro de execução.
+ * Confirma se o token do dono tem acesso ao Drive (escopo drive + UrlFetch).
+ * HTTP 200 = escopos OK; qualquer outra coisa (ou pedido de autorização) = falta escopo.
+ */
+function testarDrive() {
+  var token = ScriptApp.getOAuthToken();
+  var fid = prop('FOLDER_FOTOS', '');
+  Logger.log('FOLDER_FOTOS = ' + fid);
+  var resp = UrlFetchApp.fetch(
+    'https://www.googleapis.com/drive/v3/files/' + fid + '?fields=id,name,mimeType&supportsAllDrives=true',
+    { headers: { 'Authorization': 'Bearer ' + token }, muteHttpExceptions: true }
+  );
+  Logger.log('Drive HTTP ' + resp.getResponseCode());
+  Logger.log(resp.getContentText().slice(0, 300));
+}
+
 // ===========================================================================
 // 4) Entrada do Web App (doGet / doPost) + roteamento
 // ===========================================================================
