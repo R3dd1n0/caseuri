@@ -108,13 +108,39 @@
   });
 
   // ---- UI por arquivo -----------------------------------------------------
+  function miniatura(file) {
+    var box = document.createElement('div');
+    box.className = 'thumb';
+    var t = (file.type || '').toLowerCase();
+    var nome = (file.name || '').toLowerCase();
+    var ehVideo = t.indexOf('video/') === 0 || /\.(mp4|mov|m4v|3gp)$/.test(nome);
+    var ehHeic  = t.indexOf('heic') >= 0 || t.indexOf('heif') >= 0 || /\.(heic|heif)$/.test(nome);
+    try {
+      if (ehVideo) {
+        var v = document.createElement('video');
+        v.muted = true; v.playsInline = true; v.preload = 'metadata';
+        v.src = URL.createObjectURL(file);
+        box.appendChild(v);
+        var play = document.createElement('span'); play.className = 'thumb-play'; play.textContent = '▶';
+        box.appendChild(play);
+      } else if (!ehHeic && t.indexOf('image/') === 0) {
+        var img = document.createElement('img');
+        img.alt = ''; img.src = URL.createObjectURL(file);
+        box.appendChild(img);
+      } else {
+        box.classList.add('thumb-icon'); box.textContent = '🖼';
+      }
+    } catch (_) { box.classList.add('thumb-icon'); box.textContent = '🖼'; }
+    return box;
+  }
+
   function adicionar(file) {
     var el = document.createElement('div');
     el.className = 'item';
     el.innerHTML =
-      '<div class="item-top"><span class="item-nome"></span><span class="item-estado">na fila</span></div>' +
+      '<div class="item-top"><span class="item-estado">na fila</span></div>' +
       '<div class="barra"><i></i></div>';
-    el.querySelector('.item-nome').textContent = file.name || 'arquivo';
+    el.querySelector('.item-top').insertBefore(miniatura(file), el.querySelector('.item-estado'));
     elLista.appendChild(el);
     fila.push({
       file: file, el: el,
