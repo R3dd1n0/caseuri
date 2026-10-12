@@ -133,6 +133,17 @@ var TIPOS_VIDEO = {
   'video/mp4': 1, 'video/quicktime': 1, 'video/x-quicktime': 1, 'video/3gpp': 1
 };
 
+// Origens autorizadas a subir (para o CORS do upload resumível). O navegador
+// manda a sua origem; usamos só se estiver nesta lista, senão caímos na de produção.
+var ORIGENS_OK = {
+  'https://felipemariana.com.br': 1,
+  'https://www.felipemariana.com.br': 1,
+  'http://localhost:8137': 1
+};
+function origemPermitida(o) {
+  return ORIGENS_OK[String(o || '')] ? String(o) : 'https://felipemariana.com.br';
+}
+
 /** Interruptor geral: Script Property UPLOADS_ATIVOS = "nao" desliga tudo. */
 function uploadsAtivos() {
   return String(prop('UPLOADS_ATIVOS', 'sim')).toLowerCase() !== 'nao';
@@ -210,7 +221,7 @@ function acaoCriarSessao(c) {
 
   var mimeFinal = mime || (cat === 'foto' ? 'image/jpeg' : (cat === 'video' ? 'video/mp4' : 'application/octet-stream'));
   var nomeArq   = nomeFinal(c.nome, nome);
-  var uploadUrl = criarSessaoResumivel(nomeArq, mimeFinal, tam, pastaDe(cat));
+  var uploadUrl = criarSessaoResumivel(nomeArq, mimeFinal, tam, pastaDe(cat), origemPermitida(c.origin));
 
   var id = Utilities.getUuid();
   registrarUpload({
@@ -232,7 +243,7 @@ function acaoCriarSessao(c) {
  * A URL devolvida (header Location) já carrega a autorização: o convidado faz o
  * PUT dos bytes nela sem precisar de nenhuma credencial.
  */
-function criarSessaoResumivel(nome, mime, tam, pastaId) {
+function criarSessaoResumivel(nome, mime, tam, pastaId, origem) {
   var url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,size';
   var resp = UrlFetchApp.fetch(url, {
     method: 'post',
@@ -240,7 +251,10 @@ function criarSessaoResumivel(nome, mime, tam, pastaId) {
     headers: {
       'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
       'X-Upload-Content-Type': mime,
-      'X-Upload-Content-Length': String(tam)
+      'X-Upload-Content-Length': String(tam),
+      // Vincula a sessão à origem do navegador -> o Drive passa a devolver os
+      // cabeçalhos CORS, permitindo o PUT direto do celular do convidado.
+      'Origin': origem || 'https://felipemariana.com.br'
     },
     payload: JSON.stringify({ name: nome, mimeType: mime, parents: [pastaId] }),
     muteHttpExceptions: true

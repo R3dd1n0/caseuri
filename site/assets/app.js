@@ -86,6 +86,8 @@
       window.API.identificar(nome).then(function (r) {
         if (r && r.ok && r.resultado === 'unico') {
           window.Sessao.salvar(r.token);
+          // Guarda o nome digitado para o álbum de fotos (/fotos) reaproveitar.
+          try { localStorage.setItem('caseuri.nome', nome); } catch (e) { /* modo privado */ }
           aplicarSessao(r.token, r);
           entrarNoHub();
         } else if (r && r.resultado === 'multiplo') {

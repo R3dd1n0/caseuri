@@ -43,6 +43,9 @@ body{
 .campo-nome{display:block; margin-bottom:16px;}
 .campo-nome span{display:block; font-size:12.5px; color:var(--cinza); margin-bottom:6px; letter-spacing:.02em;}
 .campo-nome em{font-style:normal; opacity:.7;}
+.nome-compacto{font-size:13.5px; color:var(--cinza); margin-bottom:16px;}
+.nome-compacto strong{color:var(--tinta); font-weight:600;}
+.nome-compacto .trocar{color:var(--vinho); font-weight:600; text-decoration:underline; cursor:pointer;}
 #nome{
   width:100%; padding:13px 14px; font:inherit; font-size:16px; color:var(--tinta);
   border:1px solid var(--linha); border-radius:12px; background:var(--creme); outline:none;

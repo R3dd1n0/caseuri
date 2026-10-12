@@ -43,8 +43,38 @@
   }
   function assign(a, b) { for (var k in b) if (b.hasOwnProperty(k)) a[k] = b[k]; return a; }
 
+  // ---- Nome do convidado (lembra entre envios / reaproveita o login) ------
+  function nomeSalvo() {
+    try {
+      return (localStorage.getItem('fm.fotos.nome') ||
+              localStorage.getItem('caseuri.nome') || '').trim();
+    } catch (_) { return ''; }
+  }
+  function lembrarNome(n) { try { if (n) localStorage.setItem('fm.fotos.nome', n); } catch (_) {} }
+
+  // Se já sabemos o nome (deste álbum ou do login no site), não pergunta de
+  // novo: mostra "Enviando como X · trocar".
+  function montarNome() {
+    var salvo = nomeSalvo();
+    if (!salvo) return;
+    elNome.value = salvo;
+    var campo = document.querySelector('.campo-nome');
+    if (!campo) return;
+    campo.hidden = true;
+    var box = document.createElement('div');
+    box.className = 'nome-compacto';
+    box.innerHTML = 'Enviando como <strong></strong> · <a href="#" class="trocar">trocar</a>';
+    box.querySelector('strong').textContent = salvo;
+    campo.parentNode.insertBefore(box, campo);
+    box.querySelector('.trocar').addEventListener('click', function (ev) {
+      ev.preventDefault();
+      box.remove(); campo.hidden = false; elNome.focus();
+    });
+  }
+
   // ---- Inicialização ------------------------------------------------------
   function iniciar() {
+    montarNome();
     if (!BASE || BASE.indexOf('COLE_AQUI') === 0) {
       return falhaInicial('Configuração pendente (fotos-config.js).');
     }
@@ -71,6 +101,7 @@
     var files = Array.prototype.slice.call(elInput.files || []);
     elInput.value = '';
     if (!files.length) return;
+    lembrarNome((elNome.value || '').trim());
     elResumo.hidden = true;
     files.forEach(adicionar);
     processar();
@@ -113,6 +144,7 @@
     post('criarSessao', {
       ticket: ticket,
       nome: (elNome.value || '').trim(),
+      origin: location.origin,
       arquivo: { nome: f.name, tipo: f.type, tamanho: f.size }
     }).then(function (r) {
       if (!r || !r.ok) throw r || { erro: 'interno' };
