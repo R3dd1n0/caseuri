@@ -62,6 +62,19 @@ backend-fotos/         código do Apps Script do álbum (fonte, para versionar)
    Na primeira execução o Google vai pedir **autorização** — aceite com a sua conta
    (é o seu próprio script acessando o seu Drive/Sheets).
 
+## 4b) Ativar a Drive API no projeto Cloud (passo obrigatório)
+
+O backend fala com o Drive pela API REST (necessário para o upload resumível), e
+essa API precisa estar **ativada** no projeto Google Cloud do seu Apps Script.
+Se faltar, o upload falha com `403 — Google Drive API has not been used... or it is disabled`.
+
+1. No Apps Script: **Configurações do projeto → Projeto do Google Cloud Platform** —
+   anote o **número do projeto** (ex.: `872612344345`).
+2. Abra: `https://console.developers.google.com/apis/api/drive.googleapis.com/overview?project=NUMERO`
+   (troque `NUMERO`). Logado na **mesma conta**.
+3. Clique em **Ativar** e aguarde 1–2 minutos.
+4. Teste rodando a função `testarDrive` no editor → deve logar `Drive HTTP 200`.
+
 ## 5) Deploy como Web App
 
 1. **Implantar → Nova implantação →** tipo **App da Web**.
