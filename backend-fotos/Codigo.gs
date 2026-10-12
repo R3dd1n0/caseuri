@@ -282,10 +282,15 @@ var ROTAS_POST = {
 
 /** GET: emite ticket e health-check. */
 function doGet(e) {
-  var p = (e && e.parameter) || {};
-  if (p.action === 'ticket') return json(emitirTicket());
-  if (p.action === 'ping')   return json({ ok: true, uploadsAtivos: uploadsAtivos() });
-  return json({ ok: false, erro: 'dados_invalidos' });
+  try {
+    var p = (e && e.parameter) || {};
+    if (p.action === 'ticket') return json(emitirTicket());
+    if (p.action === 'ping')   return json({ ok: true, uploadsAtivos: uploadsAtivos() });
+    return json({ ok: false, erro: 'dados_invalidos' });
+  } catch (err) {
+    console.error('Erro doGet: ' + (err && err.stack || err));
+    return json({ ok: false, erro: 'interno' });
+  }
 }
 
 /** POST: ações que alteram estado (corpo text/plain com JSON, evita preflight CORS). */

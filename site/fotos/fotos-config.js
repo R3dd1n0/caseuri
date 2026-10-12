@@ -4,5 +4,5 @@
  * Essa URL não é segredo — o backend valida tudo do lado dele.
  */
 window.FOTOS_CONFIG = {
-  BASE_URL: 'COLE_AQUI_A_URL_DO_WEBAPP_DO_ALBUM/exec'
+  BASE_URL: 'https://script.google.com/macros/s/AKfycbxLfYYfr6h5Gih9e0UwbeWghd4Y8Tq7NoHF89dnsIFK4Kt8PFg6E4lfnxkKtCejavE0qg/exec'
 };
