@@ -303,6 +303,15 @@ function doGet(e) {
     var p = (e && e.parameter) || {};
     if (p.action === 'ticket') return json(emitirTicket());
     if (p.action === 'ping')   return json({ ok: true, uploadsAtivos: uploadsAtivos() });
+    if (p.action === 'diag') {
+      var token = ScriptApp.getOAuthToken();
+      var fid = prop('FOLDER_FOTOS', '');
+      var r = UrlFetchApp.fetch(
+        'https://www.googleapis.com/drive/v3/files/' + fid + '?fields=id,name&supportsAllDrives=true',
+        { headers: { 'Authorization': 'Bearer ' + token }, muteHttpExceptions: true }
+      );
+      return json({ ok: true, driveHttp: r.getResponseCode(), body: r.getContentText().slice(0, 200) });
+    }
     return json({ ok: false, erro: 'dados_invalidos' });
   } catch (err) {
     console.error('Erro doGet: ' + (err && err.stack || err));
