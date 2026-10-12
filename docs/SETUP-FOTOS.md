@@ -12,7 +12,8 @@ site/fotos/            frontend (vai pro ar em /fotos pelo mesmo GitHub Pages)
   fotos.js
   fotos-config.js      <- cole aqui a URL do Web App do álbum
 backend-fotos/         código do Apps Script do álbum (fonte, para versionar)
-  Codigo.gs  Album.gs  Planilha.gs  appsscript.json
+  Codigo.gs            backend inteiro num arquivo só
+  appsscript.json      manifesto (scopes)
 ```
 
 ---
@@ -37,10 +38,8 @@ backend-fotos/         código do Apps Script do álbum (fonte, para versionar)
 ## 3) Apps Script — criar o projeto
 
 1. Vá em https://script.google.com → **Novo projeto**.
-2. Apague o `Código.gs` de exemplo. Crie 3 arquivos de script com estes nomes e cole o conteúdo de `backend-fotos/`:
-   - `Codigo.gs`
-   - `Album.gs`
-   - `Planilha.gs`
+2. No arquivo `Código.gs` que já vem aberto, apague tudo e cole o conteúdo de
+   `backend-fotos/Codigo.gs` (é o backend inteiro num arquivo só).
 3. Clique na engrenagem **Configurações do projeto** → marque **“Mostrar arquivo appsscript.json”**.
    Abra `appsscript.json` e substitua pelo conteúdo de `backend-fotos/appsscript.json`.
 
