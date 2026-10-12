@@ -134,6 +134,7 @@
       var img = document.createElement('img'); img.loading = 'lazy'; img.alt = ''; img.src = thumbUrl(it.id, 600);
       cel.appendChild(img);
       if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
+      if (it.nome) { var nm = document.createElement('span'); nm.className = 'cel-nome'; nm.textContent = it.nome; cel.appendChild(nm); }
       cel.addEventListener('click', function () { abrirLb(lista, idx); });
       grade.appendChild(cel);
     });
@@ -143,6 +144,8 @@
   function navLb(d) { if (!lbLista.length) return; lbIdx = (lbIdx + d + lbLista.length) % lbLista.length; mostrarLb(); }
   function mostrarLb() {
     var it = lbLista[lbIdx]; lbMedia.innerHTML = '';
+    var cap = document.getElementById('lb-cap');
+    if (cap) cap.textContent = it.nome ? ('Enviado por ' + it.nome) : '';
     if (it.cat === 'video') {
       var ifr = document.createElement('iframe');
       ifr.src = 'https://drive.google.com/file/d/' + it.id + '/preview';
