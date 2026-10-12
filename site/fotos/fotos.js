@@ -1,0 +1,194 @@
+/**
+ * fotos.js — álbum colaborativo (upload direto para o Google Drive).
+ *
+ * Para cada arquivo:
+ *   1. pede ao Apps Script uma sessão de upload (POST criarSessao);
+ *   2. envia os BYTES direto para a URL da sessão com PUT (progresso real);
+ *   3. avisa o Apps Script que terminou (POST confirmar).
+ * Um arquivo que falha não derruba os outros; dá pra tentar de novo.
+ */
+(function () {
+  'use strict';
+
+  var CFG = window.FOTOS_CONFIG || {};
+  var BASE = CFG.BASE_URL || '';
+  var LIMITES = { foto: 50, video: 300, outro: 50 }; // MB (só para mensagem amigável)
+
+  var elNome   = document.getElementById('nome');
+  var elInput  = document.getElementById('arquivo');
+  var elBotao  = document.getElementById('btn-add');
+  var elAviso  = document.getElementById('aviso');
+  var elLista  = document.getElementById('lista');
+  var elResumo = document.getElementById('resumo');
+  var elHp     = document.getElementById('hp');
+
+  var ticket = null;
+  var fila = [];         // itens { file, el, barra, estado }
+  var idx = 0;           // ponteiro sequencial
+  var enviando = false;
+  var cont = { ok: 0, erro: 0 };
+
+  // ---- API ----------------------------------------------------------------
+  function post(action, corpo) {
+    return fetch(BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita preflight CORS
+      body: JSON.stringify(assign({ action: action }, corpo))
+    }).then(function (r) { return r.json(); });
+  }
+  function pegarTicket() {
+    return fetch(BASE + '?action=ticket')
+      .then(function (r) { return r.json(); })
+      .then(function (r) { if (r && r.ok) ticket = r.ticket; return r; });
+  }
+  function assign(a, b) { for (var k in b) if (b.hasOwnProperty(k)) a[k] = b[k]; return a; }
+
+  // ---- Inicialização ------------------------------------------------------
+  function iniciar() {
+    if (!BASE || BASE.indexOf('COLE_AQUI') === 0) {
+      return falhaInicial('Configuração pendente (fotos-config.js).');
+    }
+    pegarTicket().then(function (r) {
+      if (r && r.ok) {
+        elBotao.disabled = false;
+        elAviso.textContent = 'Pode escolher da galeria. Dá pra enviar vários de uma vez.';
+      } else {
+        falhaInicial('Não foi possível iniciar agora. Recarregue a página.');
+      }
+    }).catch(function () {
+      falhaInicial('Sem conexão com o servidor. Verifique a internet e recarregue.');
+    });
+  }
+  function falhaInicial(msg) {
+    elBotao.disabled = true;
+    elAviso.textContent = msg;
+    elAviso.classList.add('erro');
+  }
+
+  elBotao.addEventListener('click', function () { if (!elBotao.disabled) elInput.click(); });
+  elInput.addEventListener('change', function () {
+    if (elHp.value) return; // honeypot: bot preencheu → ignora silenciosamente
+    var files = Array.prototype.slice.call(elInput.files || []);
+    elInput.value = '';
+    if (!files.length) return;
+    elResumo.hidden = true;
+    files.forEach(adicionar);
+    processar();
+  });
+
+  // ---- UI por arquivo -----------------------------------------------------
+  function adicionar(file) {
+    var el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML =
+      '<div class="item-top"><span class="item-nome"></span><span class="item-estado">na fila</span></div>' +
+      '<div class="barra"><i></i></div>';
+    el.querySelector('.item-nome').textContent = file.name || 'arquivo';
+    elLista.appendChild(el);
+    fila.push({
+      file: file, el: el,
+      barra: el.querySelector('.barra i'),
+      estado: el.querySelector('.item-estado'),
+      feito: false
+    });
+  }
+
+  function processar() {
+    if (enviando) return;
+    while (idx < fila.length && fila[idx].feito) idx++;
+    if (idx >= fila.length) { finalizar(); return; }
+    enviando = true;
+    enviarUm(fila[idx], function () {
+      enviando = false; idx++; processar();
+    });
+  }
+
+  // ---- Envio de um arquivo ------------------------------------------------
+  function enviarUm(item, done) {
+    var f = item.file;
+    item.el.classList.remove('falhou');
+    item.estado.className = 'item-estado';
+    item.estado.textContent = 'enviando…';
+
+    post('criarSessao', {
+      ticket: ticket,
+      nome: (elNome.value || '').trim(),
+      arquivo: { nome: f.name, tipo: f.type, tamanho: f.size }
+    }).then(function (r) {
+      if (!r || !r.ok) throw r || { erro: 'interno' };
+      return enviarBytes(r.uploadUrl, f, item).then(function (fileId) {
+        return post('confirmar', { ticket: ticket, registroId: r.registroId, fileId: fileId });
+      });
+    }).then(function () {
+      item.feito = true;
+      item.estado.textContent = 'enviado ✓';
+      item.estado.classList.add('ok');
+      item.barra.style.width = '100%';
+      cont.ok++; done();
+    }).catch(function (err) {
+      item.feito = true;
+      cont.erro++;
+      item.el.classList.add('falhou');
+      item.estado.textContent = 'falhou';
+      item.estado.classList.add('erro');
+      mostrarRetry(item);
+      // registra a falha (best-effort), sem travar a fila
+      done();
+      void err;
+    });
+  }
+
+  function enviarBytes(url, file, item) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('PUT', url, true);
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) item.barra.style.width = Math.round(e.loaded / e.total * 100) + '%';
+      };
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          var id = '';
+          try { id = JSON.parse(xhr.responseText).id || ''; } catch (_) {}
+          resolve(id);
+        } else { reject({ erro: 'upload_falhou', http: xhr.status }); }
+      };
+      xhr.onerror = function () { reject({ erro: 'rede' }); };
+      xhr.ontimeout = function () { reject({ erro: 'timeout' }); };
+      xhr.send(file);
+    });
+  }
+
+  function mostrarRetry(item) {
+    if (item.el.querySelector('.retry')) return;
+    var a = document.createElement('span');
+    a.className = 'retry';
+    a.textContent = 'tentar de novo';
+    a.addEventListener('click', function () {
+      a.remove();
+      item.feito = false;
+      item.barra.style.width = '0';
+      cont.erro = Math.max(0, cont.erro - 1);
+      // reenvia só este, respeitando a fila
+      var i = fila.indexOf(item);
+      if (i < idx) idx = i;
+      processar();
+    });
+    item.el.appendChild(a);
+  }
+
+  // ---- Encerramento -------------------------------------------------------
+  function finalizar() {
+    var total = cont.ok + cont.erro;
+    if (!total) return;
+    elResumo.hidden = false;
+    var html = '<div class="selo">Obrigado 💛</div>';
+    if (cont.ok)  html += '<p>' + cont.ok + ' arquivo(s) enviado(s) com sucesso.</p>';
+    if (cont.erro) html += '<p>' + cont.erro + ' não foram enviados — use “tentar de novo” acima.</p>';
+    html += '<p class="mais">Quer mandar mais? É só tocar em “Adicionar fotos e vídeos”.</p>';
+    elResumo.innerHTML = html;
+    elResumo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  iniciar();
+})();
