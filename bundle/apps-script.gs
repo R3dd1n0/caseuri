@@ -342,7 +342,7 @@ var PARTICULAS = { 'de': 1, 'da': 1, 'do': 1, 'das': 1, 'dos': 1, 'e': 1, 'di': 
  * ocultar_presentes na planilha; qualquer um dos dois esconde a seção.
  * Para mudar quem entra aqui, é só editar esta lista.
  */
-var CONVITES_OCULTAR_PRESENTES = { 'c25': 1, 'c26': 1, 'c27': 1, 'c30': 1 };
+var CONVITES_OCULTAR_PRESENTES = { 'c25': 1, 'c26': 1, 'c27': 1 };
 
 /** Interpreta marcas de "verdadeiro" na planilha: caixa marcada, x, sim, 1... */
 function ehVerdadeiro(v) {
