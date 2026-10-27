@@ -136,7 +136,8 @@ def pontos_contorno(corte, largura, densidade=0.35, passo_base=2.0):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--inkstitch', required=True, help='pasta do código-fonte do Ink/Stitch (com fonts/)')
-    ap.add_argument('--nomes', required=True, help='um convidado por linha: "Nome Sobrenome"')
+    ap.add_argument('--nomes', required=True, help='um convidado por linha, escrito como deve ser bordado')
+    ap.add_argument('--inicio', type=int, default=1, help='número do primeiro arquivo (para dividir a lista)')
     ap.add_argument('--fonte', default='Magnolia KOR')
     ap.add_argument('--linhas', type=int, choices=(1, 2), default=1,
                     help='1 = numa curva só (padrão); 2 = nome e sobrenome em duas curvas embaixo '
@@ -177,9 +178,10 @@ def main():
         args.altura = 11.0 if args.linhas == 2 else 9.0
 
     nomes = ler_nomes(args.nomes)
-    errados = [n for n in nomes if len(n.split()) != 2]
-    if errados:
-        sys.exit('Cada convidado precisa ter exatamente dois nomes. Corrija:\n  ' + '\n  '.join(errados))
+    if args.linhas == 2:
+        errados = [n for n in nomes if len(n.split()) != 2]
+        if errados:
+            sys.exit('Com --linhas 2 cada convidado precisa ter dois nomes. Corrija:\n  ' + '\n  '.join(errados))
     saida = os.path.abspath(args.saida)
     os.makedirs(saida, exist_ok=True)
 
@@ -234,6 +236,17 @@ def main():
         # Abaixo da escala mínima, a compensação de puxada (mm fixos) engorda as
         # letras: reduz na proporção da escala. Mas no veludo os traços finos
         # somem no pelo, então garante um mínimo por lado.
+        # Ponto de abreviação ("Fsco.", "L."): sem corte, a máquina costura um
+        # fio da letra até o ponto (fica aparente). Corta a linha antes dele.
+        glifos = [g for g in grupo.iter() if g.get(NS + 'letter-group') == 'glyph']
+        for anterior, glifo in zip(glifos, glifos[1:]):
+            rotulo = (glifo.label or '').replace('GlyphLayer-', '').strip()
+            if rotulo == '.' and anterior.getparent() is glifo.getparent():
+                bordaveis = [e for e in anterior.iter() if e.get(NS + 'satin_column') == 'True'
+                             or 'stroke' in (e.get('style') or '')]
+                if bordaveis:
+                    bordaveis[-1].set(NS + 'trim_after', 'True')
+
         fator = min(1.0, escala / fonte.min_scale)
         minimo = args.engrossar
         for no in grupo.iter():
@@ -395,7 +408,7 @@ def main():
     altura_m = medida_mm(plano('M', escala, False))[1]
     print(f'Altura da maiúscula M: {altura_m:.1f} mm (igual em todos)')
     relatorio = []
-    for i, nome in enumerate(nomes, 1):
+    for i, nome in enumerate(nomes, args.inicio):
         texto = nome
         pat = nome_no_arco(texto, escala, tmp)
         f = folga(pat)

@@ -26,7 +26,11 @@ python3 bordado/marcador_taca.py --inkstitch /tmp/inkstitch \
 - Todo nome fica a pelo menos 2 mm (`--margem`) da borda interna do contorno —
   o script confere cada ponto da linha.
 - **Origem no centro do disco** (centro do furo). Desenho: 69,8 × 67,8 mm.
-- Linha com mais ou menos de dois nomes é recusada.
+- O nome é bordado exatamente como escrito na lista (um ou mais nomes,
+  abreviações com ponto). Antes de um ponto ("Fsco.", "Letícia L.") o gerador
+  força um corte de linha, senão a máquina costura um fio até o ponto.
+- Lista grande: dá para dividir em lotes paralelos com a mesma `--escala` e
+  `--inicio N` (numeração dos arquivos igual à da lista).
 - Acentos: a Magnolia (de origem francesa) não tem á í ó ú ã õ Á Í Ó Ú Ã Õ.
   `acentos.py` monta essas letras numa cópia da fonte ("Magnolia tamed PT"):
   agudo copiado do "é", til desenhado em ponto corrido triplo. Confira a
