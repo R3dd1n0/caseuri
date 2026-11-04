@@ -18,3 +18,7 @@ node_modules/
 # Bordado dos marcadores de taça: nomes reais e arquivos gerados ficam fora
 bordado/convidados*.txt
 bordado/saida*/
+
+# Cache do Python
+__pycache__/
+*.pyc
