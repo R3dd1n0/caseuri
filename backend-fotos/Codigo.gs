@@ -133,6 +133,17 @@ var TIPOS_VIDEO = {
   'video/mp4': 1, 'video/quicktime': 1, 'video/x-quicktime': 1, 'video/3gpp': 1
 };
 
+// Origens autorizadas a subir (para o CORS do upload resumível). O navegador
+// manda a sua origem; usamos só se estiver nesta lista, senão caímos na de produção.
+var ORIGENS_OK = {
+  'https://felipemariana.com.br': 1,
+  'https://www.felipemariana.com.br': 1,
+  'http://localhost:8137': 1
+};
+function origemPermitida(o) {
+  return ORIGENS_OK[String(o || '')] ? String(o) : 'https://felipemariana.com.br';
+}
+
 /** Interruptor geral: Script Property UPLOADS_ATIVOS = "nao" desliga tudo. */
 function uploadsAtivos() {
   return String(prop('UPLOADS_ATIVOS', 'sim')).toLowerCase() !== 'nao';
@@ -210,7 +221,7 @@ function acaoCriarSessao(c) {
 
   var mimeFinal = mime || (cat === 'foto' ? 'image/jpeg' : (cat === 'video' ? 'video/mp4' : 'application/octet-stream'));
   var nomeArq   = nomeFinal(c.nome, nome);
-  var uploadUrl = criarSessaoResumivel(nomeArq, mimeFinal, tam, pastaDe(cat));
+  var uploadUrl = criarSessaoResumivel(nomeArq, mimeFinal, tam, pastaDe(cat), origemPermitida(c.origin));
 
   var id = Utilities.getUuid();
   registrarUpload({
@@ -232,7 +243,7 @@ function acaoCriarSessao(c) {
  * A URL devolvida (header Location) já carrega a autorização: o convidado faz o
  * PUT dos bytes nela sem precisar de nenhuma credencial.
  */
-function criarSessaoResumivel(nome, mime, tam, pastaId) {
+function criarSessaoResumivel(nome, mime, tam, pastaId, origem) {
   var url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,size';
   var resp = UrlFetchApp.fetch(url, {
     method: 'post',
@@ -240,7 +251,10 @@ function criarSessaoResumivel(nome, mime, tam, pastaId) {
     headers: {
       'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
       'X-Upload-Content-Type': mime,
-      'X-Upload-Content-Length': String(tam)
+      'X-Upload-Content-Length': String(tam),
+      // Vincula a sessão à origem do navegador -> o Drive passa a devolver os
+      // cabeçalhos CORS, permitindo o PUT direto do celular do convidado.
+      'Origin': origem || 'https://felipemariana.com.br'
     },
     payload: JSON.stringify({ name: nome, mimeType: mime, parents: [pastaId] }),
     muteHttpExceptions: true
@@ -258,11 +272,45 @@ function acaoConfirmar(c) {
   var tk = validarTicket(c.ticket);
   if (!tk) return { ok: false, erro: 'ticket_invalido' };
   if (!c.registroId) return { ok: false, erro: 'dados_invalidos' };
+  var concluido = (c.status !== 'erro');
   atualizarStatus(c.registroId, {
-    status: (c.status === 'erro') ? 'erro' : 'concluido',
+    status: concluido ? 'concluido' : 'erro',
     drive_file_id: String(c.fileId || '')
   });
+  // Galeria aberta: deixa o arquivo visível por link (só o arquivo, não a pasta).
+  if (concluido && c.fileId) tornarVisivel(String(c.fileId));
   return { ok: true };
+}
+
+/** Dá permissão "qualquer pessoa com o link pode ver" a UM arquivo. */
+function tornarVisivel(fileId) {
+  try {
+    UrlFetchApp.fetch(
+      'https://www.googleapis.com/drive/v3/files/' + fileId + '/permissions?fields=id&supportsAllDrives=true',
+      {
+        method: 'post', contentType: 'application/json; charset=UTF-8',
+        headers: { 'Authorization': 'Bearer ' + ScriptApp.getOAuthToken() },
+        payload: JSON.stringify({ role: 'reader', type: 'anyone' }),
+        muteHttpExceptions: true
+      }
+    );
+  } catch (_) { /* não derruba o confirmar se falhar */ }
+}
+
+/** GET listar — itens concluídos para a galeria (mais recentes primeiro). */
+function acaoListar() {
+  var sh = abaUploads();
+  var dados = sh.getDataRange().getValues();
+  var out = [];
+  for (var i = 1; i < dados.length; i++) {
+    var r = dados[i];
+    var fid = String(r[6] || '');
+    if (String(r[7] || '') !== 'concluido' || !fid) continue;
+    var cat = String(r[4] || '').toLowerCase().indexOf('video') === 0 ? 'video' : 'foto';
+    out.push({ id: fid, cat: cat, nome: String(r[2] || ''), em: String(r[1] || '') });
+  }
+  out.reverse();
+  return { ok: true, itens: out.slice(0, 1000) };
 }
 
 /** Rode UMA vez no editor para criar a aba de log na planilha. */
@@ -303,6 +351,7 @@ function doGet(e) {
     var p = (e && e.parameter) || {};
     if (p.action === 'ticket') return json(emitirTicket());
     if (p.action === 'ping')   return json({ ok: true, uploadsAtivos: uploadsAtivos() });
+    if (p.action === 'listar') return json(acaoListar());
     if (p.action === 'diag') {
       var token = ScriptApp.getOAuthToken();
       var fid = prop('FOLDER_FOTOS', '');

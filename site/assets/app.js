@@ -86,6 +86,8 @@
       window.API.identificar(nome).then(function (r) {
         if (r && r.ok && r.resultado === 'unico') {
           window.Sessao.salvar(r.token);
+          // Guarda o nome digitado para o álbum de fotos (/fotos) reaproveitar.
+          try { localStorage.setItem('caseuri.nome', nome); } catch (e) { /* modo privado */ }
           aplicarSessao(r.token, r);
           entrarNoHub();
         } else if (r && r.resultado === 'multiplo') {
@@ -179,6 +181,24 @@
     if (slideTimer) clearInterval(slideTimer);
     slideTimer = setInterval(function () { irSlide(slideIdx + 1, false); }, 4500);
   }
+
+  // ---- Referências do dress code (fotos all black passando) ----
+  function montarDressRefs() {
+    var palco = $('#dress-refs'); if (!palco) return;
+    var srcs = ['dress-ref-2', 'dress-ref-3', 'dress-ref-4', 'dress-ref-5'];
+    palco.innerHTML = '';
+    var imgs = srcs.map(function (s, i) {
+      var im = el('img', { class: 'dref' + (i === 0 ? ' ativo' : ''),
+        src: 'assets/fotos/' + s + '.jpg', alt: 'Referência all black', loading: 'lazy' });
+      palco.appendChild(im); return im;
+    });
+    var idx = 0;
+    if (imgs.length > 1) setInterval(function () {
+      imgs[idx].classList.remove('ativo');
+      idx = (idx + 1) % imgs.length;
+      imgs[idx].classList.add('ativo');
+    }, 3500);
+  }
   function abrirFoto(i) {
     if (!galeriaFotos.length) return;
     fotoAtual = (i + galeriaFotos.length) % galeriaFotos.length;
@@ -250,12 +270,21 @@
     setInterval(tick, 1000);
   }
 
-  // ---- RSVP (lista nominal: uma pessoa por linha, sem "quantas pessoas") ----
+  // ---- RSVP (nominal; sem observação; vira resumo depois de responder) ----
+  function rsvpRespondeu(p) { return p.status === 'confirmado' || p.status === 'recusado'; }
+
   function montarRsvp() {
     $('#rsvp-grupo').textContent = estado.grupo;
+    var ja = false;
+    for (var i = 0; i < estado.pessoas.length; i++) { if (rsvpRespondeu(estado.pessoas[i])) { ja = true; break; } }
+    if (ja) renderRsvpResumo(); else renderRsvpForm();
+  }
+
+  function renderRsvpForm() {
+    mostrar($('#rsvp-resumo'), false);
+    mostrar($('#rsvp-form'), true);
     var cont = $('#rsvp-pessoas');
     cont.innerHTML = '';
-
     estado.pessoas.forEach(function (p) {
       var bloco = el('div', { class: 'pessoa-rsvp' });
       bloco.appendChild(el('strong', { text: p.nome }));
@@ -272,25 +301,15 @@
         opcoes.appendChild(lbl);
       });
       bloco.appendChild(opcoes);
-      var obs = el('input', { class: 'campo', type: 'text', placeholder: 'Observação (opcional)' });
-      obs.setAttribute('data-obs', p.id);
-      if (p.obs) obs.value = p.obs;
-      bloco.appendChild(obs);
       cont.appendChild(bloco);
     });
 
-    // onsubmit (não addEventListener) evita handler duplicado se remontar.
     $('#rsvp-form').onsubmit = function (ev) {
       ev.preventDefault();
       var msg = $('#rsvp-msg');
       var respostas = estado.pessoas.map(function (p) {
         var sel = document.querySelector('input[name="rsvp-' + p.id + '"]:checked');
-        var obsEl = document.querySelector('[data-obs="' + p.id + '"]');
-        return {
-          id: p.id,
-          status: sel ? sel.value : (p.status || 'pendente'),
-          obs: obsEl ? obsEl.value : ''
-        };
+        return { id: p.id, status: sel ? sel.value : (p.status || 'pendente'), obs: '' };
       });
       if (!respostas.some(function (r) { return r.status !== 'pendente'; })) {
         msg.textContent = 'Marque "Vou" ou "Não vou" para pelo menos uma pessoa.';
@@ -300,13 +319,37 @@
       msg.textContent = 'Salvando…'; msg.className = 'msg';
       window.API.rsvpSalvar(estado.token, respostas).then(function (resp) {
         if (resp && resp.ok) {
-          estado.pessoas = resp.pessoas || estado.pessoas;
-          msg.textContent = 'Resposta salva! 🎉'; msg.className = 'msg msg--ok';
+          if (resp.pessoas) { estado.pessoas = resp.pessoas; }
+          else { respostas.forEach(function (r) {
+            for (var k = 0; k < estado.pessoas.length; k++) { if (estado.pessoas[k].id === r.id) estado.pessoas[k].status = r.status; }
+          }); }
+          msg.textContent = ''; msg.className = 'msg';
+          renderRsvpResumo();
         } else {
           msg.textContent = 'Não deu para salvar. Tente de novo.'; msg.className = 'msg msg--erro';
         }
       }).catch(function () { msg.textContent = 'Erro de conexão.'; msg.className = 'msg msg--erro'; });
     };
+  }
+
+  function renderRsvpResumo() {
+    mostrar($('#rsvp-form'), false);
+    var resumo = $('#rsvp-resumo');
+    resumo.innerHTML = '';
+    estado.pessoas.forEach(function (p) {
+      var conf = p.status === 'confirmado', rec = p.status === 'recusado';
+      var linha = el('div', { class: 'pessoa-rsvp resumo-linha' });
+      linha.appendChild(el('strong', { text: p.nome }));
+      linha.appendChild(el('span', {
+        class: 'resumo-status ' + (conf ? 'ok' : (rec ? 'no' : '')),
+        text: conf ? 'Confirmado' : (rec ? 'Não vai' : 'Sem resposta')
+      }));
+      resumo.appendChild(linha);
+    });
+    var btn = el('button', { class: 'botao botao--secundario', type: 'button', text: 'Mudar resposta' });
+    btn.addEventListener('click', function () { $('#rsvp-msg').textContent = ''; renderRsvpForm(); });
+    resumo.appendChild(btn);
+    mostrar(resumo, true);
   }
 
   function atualizarLembrete() {
@@ -423,7 +466,10 @@
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
 
     var sec = $('#presentes');
-    if (sec && !sec.hidden) { try { sec.scrollIntoView({ behavior: 'smooth' }); } catch (e) {} }
+    if (sec && !sec.hidden) {
+      sec.open = true; // é um <details>: garante que fique aberto ao voltar do cartão
+      try { sec.scrollIntoView({ behavior: 'smooth' }); } catch (e) {}
+    }
     var alvo = $('#presentes-msg');
     var texto, classe;
     if (status === 'approved') {

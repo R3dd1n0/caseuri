@@ -43,8 +43,124 @@
   }
   function assign(a, b) { for (var k in b) if (b.hasOwnProperty(k)) a[k] = b[k]; return a; }
 
+  // ---- Nome do convidado (lembra entre envios / reaproveita o login) ------
+  function nomeSalvo() {
+    try {
+      return (localStorage.getItem('fm.fotos.nome') ||
+              localStorage.getItem('caseuri.nome') || '').trim();
+    } catch (_) { return ''; }
+  }
+  function lembrarNome(n) { try { if (n) localStorage.setItem('fm.fotos.nome', n); } catch (_) {} }
+
+  // Se já sabemos o nome (deste álbum ou do login no site), não pergunta de
+  // novo: mostra "Enviando como X · trocar".
+  function montarNome() {
+    var salvo = nomeSalvo();
+    if (!salvo) return;
+    elNome.value = salvo;
+    var campo = document.querySelector('.campo-nome');
+    if (!campo) return;
+    campo.hidden = true;
+    var box = document.createElement('div');
+    box.className = 'nome-compacto';
+    box.innerHTML = 'Enviando como <strong></strong> · <a href="#" class="trocar">trocar</a>';
+    box.querySelector('strong').textContent = salvo;
+    campo.parentNode.insertBefore(box, campo);
+    box.querySelector('.trocar').addEventListener('click', function (ev) {
+      ev.preventDefault();
+      box.remove(); campo.hidden = false; elNome.focus();
+    });
+  }
+
+  // ---- Galeria (álbum) ----------------------------------------------------
+  var tabEnviar  = document.getElementById('tab-enviar');
+  var tabAlbum   = document.getElementById('tab-album');
+  var paneEnviar = document.getElementById('pane-enviar');
+  var paneAlbum  = document.getElementById('pane-album');
+  var grade      = document.getElementById('grade');
+  var albumMsg   = document.getElementById('album-msg');
+  var lb         = document.getElementById('lb');
+  var lbMedia    = document.getElementById('lb-media');
+  var itensAlbum = [], filtroAtual = 'todos', albumCarregado = false, lbLista = [], lbIdx = 0;
+
+  function setupAbas() {
+    tabEnviar.addEventListener('click', function () { mostrarPane('enviar'); });
+    tabAlbum.addEventListener('click', function () { mostrarPane('album'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (b) {
+      b.addEventListener('click', function () {
+        filtroAtual = b.getAttribute('data-f');
+        Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (x) {
+          x.classList.toggle('ativa', x === b);
+        });
+        renderGrade();
+      });
+    });
+    document.getElementById('lb-fechar').addEventListener('click', fecharLb);
+    document.getElementById('lb-prev').addEventListener('click', function () { navLb(-1); });
+    document.getElementById('lb-next').addEventListener('click', function () { navLb(1); });
+    lb.addEventListener('click', function (e) { if (e.target === lb) fecharLb(); });
+  }
+  function mostrarPane(qual) {
+    paneEnviar.hidden = qual !== 'enviar';
+    paneAlbum.hidden  = qual !== 'album';
+    tabEnviar.classList.toggle('ativa', qual === 'enviar');
+    tabAlbum.classList.toggle('ativa', qual === 'album');
+    if (qual === 'album' && !albumCarregado) carregarAlbum();
+  }
+  function carregarAlbum() {
+    albumMsg.hidden = false; albumMsg.classList.remove('erro'); albumMsg.textContent = 'Carregando…';
+    grade.innerHTML = '';
+    fetch(BASE + '?action=listar').then(function (r) { return r.json(); }).then(function (r) {
+      albumCarregado = true;
+      itensAlbum = (r && r.itens) || [];
+      renderGrade();
+    }).catch(function () {
+      albumMsg.hidden = false; albumMsg.classList.add('erro');
+      albumMsg.textContent = 'Não deu pra carregar agora. Tente de novo.';
+    });
+  }
+  function thumbUrl(id, w) { return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 600); }
+  function renderGrade() {
+    grade.innerHTML = '';
+    var lista = itensAlbum.filter(function (it) { return filtroAtual === 'todos' || it.cat === filtroAtual; });
+    if (!lista.length) {
+      albumMsg.hidden = false; albumMsg.classList.remove('erro');
+      albumMsg.textContent = albumCarregado ? 'Nada por aqui ainda. Envie a primeira foto!' : 'Carregando…';
+      return;
+    }
+    albumMsg.hidden = true;
+    lista.forEach(function (it, idx) {
+      var cel = document.createElement('button'); cel.type = 'button'; cel.className = 'cel';
+      var img = document.createElement('img'); img.loading = 'lazy'; img.alt = ''; img.src = thumbUrl(it.id, 600);
+      cel.appendChild(img);
+      if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
+      if (it.nome) { var nm = document.createElement('span'); nm.className = 'cel-nome'; nm.textContent = it.nome; cel.appendChild(nm); }
+      cel.addEventListener('click', function () { abrirLb(lista, idx); });
+      grade.appendChild(cel);
+    });
+  }
+  function abrirLb(lista, idx) { lbLista = lista; lbIdx = idx; mostrarLb(); lb.hidden = false; document.body.style.overflow = 'hidden'; }
+  function fecharLb() { lb.hidden = true; lbMedia.innerHTML = ''; document.body.style.overflow = ''; }
+  function navLb(d) { if (!lbLista.length) return; lbIdx = (lbIdx + d + lbLista.length) % lbLista.length; mostrarLb(); }
+  function mostrarLb() {
+    var it = lbLista[lbIdx]; lbMedia.innerHTML = '';
+    var cap = document.getElementById('lb-cap');
+    if (cap) cap.textContent = it.nome ? ('Enviado por ' + it.nome) : '';
+    if (it.cat === 'video') {
+      var ifr = document.createElement('iframe');
+      ifr.src = 'https://drive.google.com/file/d/' + it.id + '/preview';
+      ifr.setAttribute('allow', 'autoplay'); ifr.setAttribute('allowfullscreen', '');
+      lbMedia.appendChild(ifr);
+    } else {
+      var img = document.createElement('img'); img.alt = ''; img.src = thumbUrl(it.id, 1600);
+      lbMedia.appendChild(img);
+    }
+  }
+
   // ---- Inicialização ------------------------------------------------------
   function iniciar() {
+    montarNome();
+    setupAbas();
     if (!BASE || BASE.indexOf('COLE_AQUI') === 0) {
       return falhaInicial('Configuração pendente (fotos-config.js).');
     }
@@ -71,19 +187,46 @@
     var files = Array.prototype.slice.call(elInput.files || []);
     elInput.value = '';
     if (!files.length) return;
+    lembrarNome((elNome.value || '').trim());
     elResumo.hidden = true;
     files.forEach(adicionar);
     processar();
   });
 
   // ---- UI por arquivo -----------------------------------------------------
+  function miniatura(file) {
+    var box = document.createElement('div');
+    box.className = 'thumb';
+    var t = (file.type || '').toLowerCase();
+    var nome = (file.name || '').toLowerCase();
+    var ehVideo = t.indexOf('video/') === 0 || /\.(mp4|mov|m4v|3gp)$/.test(nome);
+    var ehHeic  = t.indexOf('heic') >= 0 || t.indexOf('heif') >= 0 || /\.(heic|heif)$/.test(nome);
+    try {
+      if (ehVideo) {
+        var v = document.createElement('video');
+        v.muted = true; v.playsInline = true; v.preload = 'metadata';
+        v.src = URL.createObjectURL(file);
+        box.appendChild(v);
+        var play = document.createElement('span'); play.className = 'thumb-play'; play.textContent = '▶';
+        box.appendChild(play);
+      } else if (!ehHeic && t.indexOf('image/') === 0) {
+        var img = document.createElement('img');
+        img.alt = ''; img.src = URL.createObjectURL(file);
+        box.appendChild(img);
+      } else {
+        box.classList.add('thumb-icon'); box.textContent = '🖼';
+      }
+    } catch (_) { box.classList.add('thumb-icon'); box.textContent = '🖼'; }
+    return box;
+  }
+
   function adicionar(file) {
     var el = document.createElement('div');
     el.className = 'item';
     el.innerHTML =
-      '<div class="item-top"><span class="item-nome"></span><span class="item-estado">na fila</span></div>' +
+      '<div class="item-top"><span class="item-estado">na fila</span></div>' +
       '<div class="barra"><i></i></div>';
-    el.querySelector('.item-nome').textContent = file.name || 'arquivo';
+    el.querySelector('.item-top').insertBefore(miniatura(file), el.querySelector('.item-estado'));
     elLista.appendChild(el);
     fila.push({
       file: file, el: el,
@@ -113,6 +256,7 @@
     post('criarSessao', {
       ticket: ticket,
       nome: (elNome.value || '').trim(),
+      origin: location.origin,
       arquivo: { nome: f.name, tipo: f.type, tamanho: f.size }
     }).then(function (r) {
       if (!r || !r.ok) throw r || { erro: 'interno' };
@@ -181,6 +325,7 @@
   function finalizar() {
     var total = cont.ok + cont.erro;
     if (!total) return;
+    if (cont.ok) albumCarregado = false; // recarrega o álbum na próxima vez que abrir
     elResumo.hidden = false;
     var html = '<div class="selo">Obrigado 💛</div>';
     if (cont.ok)  html += '<p>' + cont.ok + ' arquivo(s) enviado(s) com sucesso.</p>';
