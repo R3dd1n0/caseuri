@@ -94,6 +94,28 @@ body{
 .aba{border:1px solid var(--linha); background:#fff; color:var(--cinza); font:inherit; font-weight:600; font-size:14px; padding:9px 20px; border-radius:999px; cursor:pointer;}
 .aba.ativa{background:var(--vinho); color:#fff; border-color:var(--vinho);}
 
+/* Banner de missão (aba Enviar) */
+.missao-banner{margin:0 0 14px; padding:10px 12px; border-radius:12px; font-size:13.5px; color:var(--cinza); background:var(--creme); border:1px solid var(--linha);}
+.missao-banner.ativa{color:var(--vinho); border-color:var(--vinho); background:#fff;}
+.missao-banner strong{color:var(--tinta); font-weight:600;}
+.missao-banner .link-missao{color:var(--vinho); font-weight:600; text-decoration:underline; cursor:pointer; white-space:nowrap;}
+.missao-banner[hidden]{display:none;}
+
+/* Aba Missões */
+.missoes-intro{font-size:14px; color:var(--tinta); text-align:center; margin:2px auto 16px; max-width:320px;}
+.missoes-lista{display:flex; flex-direction:column; gap:8px;}
+.missao-grupo{font-family:var(--fonte-titulo); color:var(--vinho); font-size:19px; font-weight:600; margin:14px 0 2px;}
+.missao-row{display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--linha); border-radius:12px; padding:12px 14px;}
+.missao-row.feita{border-color:var(--ok); background:#f4faf6;}
+.missao-check{width:22px; height:22px; flex:0 0 auto; border-radius:999px; border:2px solid var(--linha); color:#fff; background:transparent; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;}
+.missao-row.feita .missao-check{background:var(--ok); border-color:var(--ok);}
+.missao-label{flex:1 1 auto; font-size:15px; color:var(--tinta);}
+.missao-btn{flex:0 0 auto; border:0; border-radius:999px; background:var(--vinho); color:#fff; font:inherit; font-weight:600; font-size:13px; padding:8px 16px; cursor:pointer;}
+.missao-row.feita .missao-btn{background:#fff; color:var(--vinho); border:1px solid var(--vinho);}
+
+/* Selo de missão na galeria */
+.cel-missao{position:absolute; top:6px; left:6px; max-width:82%; padding:3px 7px; font-size:9.5px; line-height:1; color:#fff; background:rgba(107,30,46,.82); border-radius:999px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
 /* Filtros da galeria */
 .filtros{display:flex; gap:8px; justify-content:center; margin-bottom:14px;}
 .filtro{border:1px solid var(--linha); background:#fff; color:var(--cinza); font:inherit; font-size:13px; padding:6px 14px; border-radius:999px; cursor:pointer;}

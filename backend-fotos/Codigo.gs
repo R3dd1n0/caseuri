@@ -29,7 +29,7 @@
 var ABA_UPLOADS = 'Uploads';
 var COLUNAS_UPLOADS = [
   'id', 'criado_em', 'nome_convidado', 'arquivo_original',
-  'tipo', 'tamanho_bytes', 'drive_file_id', 'status'
+  'tipo', 'tamanho_bytes', 'drive_file_id', 'status', 'missao'
 ];
 
 function props() { return PropertiesService.getScriptProperties(); }
@@ -51,6 +51,11 @@ function abaUploads() {
     sh = ss.insertSheet(ABA_UPLOADS);
     sh.getRange(1, 1, 1, COLUNAS_UPLOADS.length).setValues([COLUNAS_UPLOADS]);
     sh.setFrozenRows(1);
+    return sh;
+  }
+  // Garante que o cabeçalho tenha todas as colunas (ex.: 'missao' adicionada depois).
+  if (sh.getLastColumn() < COLUNAS_UPLOADS.length) {
+    sh.getRange(1, 1, 1, COLUNAS_UPLOADS.length).setValues([COLUNAS_UPLOADS]);
   }
   return sh;
 }
@@ -183,6 +188,11 @@ function sanitizarNome(nome) {
   return (n || 'arquivo').slice(0, 120);
 }
 
+/** Normaliza o id da missão: slug curto, só [a-z0-9_-]. '' = envio livre. */
+function sanitizarMissao(m) {
+  return String(m || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '').slice(0, 24);
+}
+
 /** Nome final: carimbo de data + nome do convidado (se houver) + nome original. */
 function nomeFinal(nomeConvidado, nomeArq) {
   var tz = prop('TZ', 'America/Fortaleza');
@@ -232,7 +242,8 @@ function acaoCriarSessao(c) {
     tipo: mimeFinal,
     tamanho_bytes: tam,
     drive_file_id: '',
-    status: 'iniciado'
+    status: 'iniciado',
+    missao: sanitizarMissao(c.missao)
   });
 
   return { ok: true, registroId: id, uploadUrl: uploadUrl, categoria: cat };
@@ -307,7 +318,7 @@ function acaoListar() {
     var fid = String(r[6] || '');
     if (String(r[7] || '') !== 'concluido' || !fid) continue;
     var cat = String(r[4] || '').toLowerCase().indexOf('video') === 0 ? 'video' : 'foto';
-    out.push({ id: fid, cat: cat, nome: String(r[2] || ''), em: String(r[1] || '') });
+    out.push({ id: fid, cat: cat, nome: String(r[2] || ''), em: String(r[1] || ''), missao: String(r[8] || '') });
   }
   out.reverse();
   return { ok: true, itens: out.slice(0, 1000) };

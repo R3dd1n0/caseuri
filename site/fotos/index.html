@@ -22,6 +22,7 @@
 
     <nav class="abas" aria-label="Seções">
       <button id="tab-enviar" class="aba ativa" type="button">Enviar</button>
+      <button id="tab-missoes" class="aba" type="button">Missões</button>
       <button id="tab-album" class="aba" type="button">Álbum</button>
     </nav>
 
@@ -32,6 +33,7 @@
         <input id="nome" type="text" autocomplete="name" placeholder="Como você quer aparecer">
       </label>
 
+      <p id="missao-banner" class="missao-banner" hidden></p>
       <button id="btn-add" class="botao" type="button" disabled>Adicionar fotos e vídeos</button>
       <input id="arquivo" type="file" accept="image/*,video/*,.heic,.heif,.mov" multiple hidden>
 
@@ -51,6 +53,12 @@
       </div>
       <div id="grade" class="grade"></div>
       <p id="album-msg" class="aviso">Carregando…</p>
+    </section>
+
+    <!-- ====== MISSÕES ====== -->
+    <section id="pane-missoes" hidden>
+      <p class="missoes-intro">Complete as missões do seu cartão — e as bônus! Toque em “Enviar” pra mandar a foto de cada uma.</p>
+      <div id="missoes-lista" class="missoes-lista"></div>
     </section>
 
     <footer class="rodape">Suas fotos vão direto para o álbum dos noivos.</footer>

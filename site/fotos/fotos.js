@@ -14,6 +14,19 @@
   var BASE = CFG.BASE_URL || '';
   var LIMITES = { foto: 50, video: 300, outro: 50 }; // MB (só para mensagem amigável)
 
+  // Missões do "jogo". As 4 primeiras são as do cartão impresso; as marcadas
+  // como 'bonus' existem só no site. Para mudar/adicionar, edite só esta lista.
+  var MISSOES = [
+    { id: 'mesa',     label: 'Foto de toda a mesa', grupo: 'card' },
+    { id: 'selfie',   label: 'Uma selfie',          grupo: 'card' },
+    { id: 'danca',    label: 'A primeira dança',    grupo: 'card' },
+    { id: 'criativo', label: 'Seja criativo!',      grupo: 'card' },
+    { id: 'brinde',   label: 'Um brinde',           grupo: 'bonus' },
+    { id: 'casal',    label: 'O casal juntos',      grupo: 'bonus' },
+    { id: 'pista',    label: 'A galera na pista',   grupo: 'bonus' }
+  ];
+  var missaoAtual = '';
+
   var elNome   = document.getElementById('nome');
   var elInput  = document.getElementById('arquivo');
   var elBotao  = document.getElementById('btn-add');
@@ -21,6 +34,7 @@
   var elLista  = document.getElementById('lista');
   var elResumo = document.getElementById('resumo');
   var elHp     = document.getElementById('hp');
+  var elBanner = document.getElementById('missao-banner');
 
   var ticket = null;
   var fila = [];         // itens { file, el, barra, estado }
@@ -85,6 +99,7 @@
 
   function setupAbas() {
     tabEnviar.addEventListener('click', function () { mostrarPane('enviar'); });
+    if (tabMissoes) tabMissoes.addEventListener('click', function () { mostrarPane('missoes'); });
     tabAlbum.addEventListener('click', function () { mostrarPane('album'); });
     Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (b) {
       b.addEventListener('click', function () {
@@ -103,9 +118,12 @@
   function mostrarPane(qual) {
     paneEnviar.hidden = qual !== 'enviar';
     paneAlbum.hidden  = qual !== 'album';
+    if (paneMissoes) paneMissoes.hidden = qual !== 'missoes';
     tabEnviar.classList.toggle('ativa', qual === 'enviar');
     tabAlbum.classList.toggle('ativa', qual === 'album');
+    if (tabMissoes) tabMissoes.classList.toggle('ativa', qual === 'missoes');
     if (qual === 'album' && !albumCarregado) carregarAlbum();
+    if (qual === 'missoes') renderMissoes();
   }
   function carregarAlbum() {
     albumMsg.hidden = false; albumMsg.classList.remove('erro'); albumMsg.textContent = 'Carregando…';
@@ -135,6 +153,7 @@
       cel.appendChild(img);
       if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
       if (it.nome) { var nm = document.createElement('span'); nm.className = 'cel-nome'; nm.textContent = it.nome; cel.appendChild(nm); }
+      if (it.missao && labelMissao(it.missao)) { var mt = document.createElement('span'); mt.className = 'cel-missao'; mt.textContent = labelMissao(it.missao); cel.appendChild(mt); }
       cel.addEventListener('click', function () { abrirLb(lista, idx); });
       grade.appendChild(cel);
     });
@@ -145,7 +164,12 @@
   function mostrarLb() {
     var it = lbLista[lbIdx]; lbMedia.innerHTML = '';
     var cap = document.getElementById('lb-cap');
-    if (cap) cap.textContent = it.nome ? ('Enviado por ' + it.nome) : '';
+    if (cap) {
+      var partes = [];
+      if (it.nome) partes.push('Enviado por ' + it.nome);
+      if (it.missao && labelMissao(it.missao)) partes.push('Missão: ' + labelMissao(it.missao));
+      cap.textContent = partes.join(' · ');
+    }
     if (it.cat === 'video') {
       var ifr = document.createElement('iframe');
       ifr.src = 'https://drive.google.com/file/d/' + it.id + '/preview';
@@ -157,10 +181,81 @@
     }
   }
 
+  // ---- Missões (jogo) -----------------------------------------------------
+  var tabMissoes   = document.getElementById('tab-missoes');
+  var paneMissoes  = document.getElementById('pane-missoes');
+  var missoesLista = document.getElementById('missoes-lista');
+
+  function labelMissao(id) {
+    for (var i = 0; i < MISSOES.length; i++) if (MISSOES[i].id === id) return MISSOES[i].label;
+    return '';
+  }
+  function missoesFeitas() {
+    try { return JSON.parse(localStorage.getItem('fm.fotos.missoes') || '{}') || {}; }
+    catch (_) { return {}; }
+  }
+  function marcarMissaoFeita(id) {
+    if (!id) return;
+    try { var o = missoesFeitas(); o[id] = true; localStorage.setItem('fm.fotos.missoes', JSON.stringify(o)); }
+    catch (_) {}
+  }
+  function renderMissoes() {
+    if (!missoesLista) return;
+    var feitas = missoesFeitas();
+    missoesLista.innerHTML = '';
+    [{ chave: 'card', titulo: 'Do seu cartão' }, { chave: 'bonus', titulo: 'Bônus (só no site)' }].forEach(function (g) {
+      var doGrupo = MISSOES.filter(function (m) { return m.grupo === g.chave; });
+      if (!doGrupo.length) return;
+      var h = document.createElement('p');
+      h.className = 'missao-grupo'; h.textContent = g.titulo;
+      missoesLista.appendChild(h);
+      doGrupo.forEach(function (m) {
+        var feita = !!feitas[m.id];
+        var row = document.createElement('div');
+        row.className = 'missao-row' + (feita ? ' feita' : '');
+        var marca = document.createElement('span');
+        marca.className = 'missao-check'; marca.textContent = feita ? '✓' : '';
+        var lab = document.createElement('span');
+        lab.className = 'missao-label'; lab.textContent = m.label;
+        var bt = document.createElement('button');
+        bt.type = 'button'; bt.className = 'missao-btn';
+        bt.textContent = feita ? 'Enviar mais' : 'Enviar';
+        bt.addEventListener('click', function () { escolherMissao(m.id); });
+        row.appendChild(marca); row.appendChild(lab); row.appendChild(bt);
+        missoesLista.appendChild(row);
+      });
+    });
+  }
+  function escolherMissao(id) {
+    missaoAtual = id || '';
+    atualizarBanner();
+    mostrarPane('enviar');
+    if (!elBotao.disabled) elInput.click();
+  }
+  function atualizarBanner() {
+    if (!elBanner) return;
+    elBanner.hidden = false;
+    if (missaoAtual) {
+      elBanner.className = 'missao-banner ativa';
+      elBanner.innerHTML = 'Missão: <strong></strong> · <a href="#" class="link-missao">enviar livre</a>';
+      elBanner.querySelector('strong').textContent = labelMissao(missaoAtual);
+      elBanner.querySelector('.link-missao').addEventListener('click', function (ev) {
+        ev.preventDefault(); missaoAtual = ''; atualizarBanner();
+      });
+    } else {
+      elBanner.className = 'missao-banner';
+      elBanner.innerHTML = 'Envio livre · <a href="#" class="link-missao">escolher missão</a>';
+      elBanner.querySelector('.link-missao').addEventListener('click', function (ev) {
+        ev.preventDefault(); mostrarPane('missoes');
+      });
+    }
+  }
+
   // ---- Inicialização ------------------------------------------------------
   function iniciar() {
     montarNome();
     setupAbas();
+    atualizarBanner();
     if (!BASE || BASE.indexOf('COLE_AQUI') === 0) {
       return falhaInicial('Configuração pendente (fotos-config.js).');
     }
@@ -232,6 +327,7 @@
       file: file, el: el,
       barra: el.querySelector('.barra i'),
       estado: el.querySelector('.item-estado'),
+      missao: missaoAtual,
       feito: false
     });
   }
@@ -257,6 +353,7 @@
       ticket: ticket,
       nome: (elNome.value || '').trim(),
       origin: location.origin,
+      missao: item.missao || '',
       arquivo: { nome: f.name, tipo: f.type, tamanho: f.size }
     }).then(function (r) {
       if (!r || !r.ok) throw r || { erro: 'interno' };
@@ -268,6 +365,7 @@
       item.estado.textContent = 'enviado ✓';
       item.estado.classList.add('ok');
       item.barra.style.width = '100%';
+      if (item.missao) marcarMissaoFeita(item.missao);
       cont.ok++; done();
     }).catch(function (err) {
       item.feito = true;
@@ -325,7 +423,7 @@
   function finalizar() {
     var total = cont.ok + cont.erro;
     if (!total) return;
-    if (cont.ok) albumCarregado = false; // recarrega o álbum na próxima vez que abrir
+    if (cont.ok) { albumCarregado = false; renderMissoes(); } // recarrega álbum e atualiza missões
     elResumo.hidden = false;
     var html = '<div class="selo">Obrigado 💛</div>';
     if (cont.ok)  html += '<p>' + cont.ok + ' arquivo(s) enviado(s) com sucesso.</p>';
