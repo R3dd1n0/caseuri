@@ -23,11 +23,18 @@ body{
 
 /* Capa */
 .capa{text-align:center; padding:18px 0 22px;}
+/* Monograma oficial (o mesmo do site), tingido de vinho via máscara. */
 .monograma{
-  font-family:var(--fonte-titulo); color:var(--vinho); font-size:30px; font-weight:600;
-  letter-spacing:.06em; margin-bottom:10px;
+  width:76px; height:76px; margin:0 auto 14px;
+  background:url(../assets/monograma.svg) center/contain no-repeat;
 }
-.monograma span{opacity:.55; margin:0 2px;}
+@supports ((-webkit-mask-image:url(x)) or (mask-image:url(x))){
+  .monograma{
+    background:var(--vinho);
+    -webkit-mask:url(../assets/monograma.svg) center/contain no-repeat;
+    mask:url(../assets/monograma.svg) center/contain no-repeat;
+  }
+}
 .capa h1{
   font-family:var(--fonte-titulo); font-weight:600; color:var(--vinho);
   font-size:38px; line-height:1.05; margin:0;
