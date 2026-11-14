@@ -170,6 +170,12 @@
       if (it.missao && labelMissao(it.missao)) partes.push('Missão: ' + labelMissao(it.missao));
       cap.textContent = partes.join(' · ');
     }
+    // Baixar o original direto do Drive (o arquivo já é público por link).
+    var baixar = document.getElementById('lb-baixar');
+    if (baixar) {
+      baixar.href = 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(it.id);
+      baixar.setAttribute('aria-label', it.cat === 'video' ? 'Baixar vídeo original' : 'Baixar foto original');
+    }
     if (it.cat === 'video') {
       var ifr = document.createElement('iframe');
       ifr.src = 'https://drive.google.com/file/d/' + it.id + '/preview';
@@ -256,6 +262,8 @@
     montarNome();
     setupAbas();
     atualizarBanner();
+    // Link direto para a galeria (ex.: botão "Fotos" da página principal).
+    if (location.hash === '#album') mostrarPane('album');
     if (!BASE || BASE.indexOf('COLE_AQUI') === 0) {
       return falhaInicial('Configuração pendente (fotos-config.js).');
     }

@@ -128,6 +128,11 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 #gate .campo { background: rgba(255,255,255,.96); border-color: transparent; }
 #gate .botao { background: var(--creme); color: var(--bordo); border-color: var(--creme); font-weight: 600; }
 #gate .msg--erro { color: #ffd4d4; }
+#gate .gate-fotos {
+  display: inline-block; margin-top: 1.6rem; color: var(--creme);
+  font-size: .82rem; text-transform: uppercase; letter-spacing: .13em;
+  text-decoration: underline; text-underline-offset: .3em;
+}
 
 /* ====================== HUB ====================== */
 #hub { display: none; }
@@ -204,6 +209,8 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
   padding: .62rem 1.1rem; background: rgba(255,255,255,.07);
 }
 .capa-nav a:hover { background: rgba(255,255,255,.16); }
+.capa-nav a.destaque { background: var(--creme); color: var(--bordo); border-color: var(--creme); font-weight: 600; }
+.capa-nav a.destaque:hover { background: #fff; }
 
 /* ---- BLOCOS ---- */
 .bloco { padding: clamp(3rem, 11vw, 5rem) 0; scroll-margin-top: var(--nav-altura); position: relative; }
