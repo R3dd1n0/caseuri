@@ -194,6 +194,7 @@ label { display: block; margin-bottom: 0.35rem; color: var(--tinta-suave); }
 }
 .contagem { display: flex; gap: .9rem; justify-content: center; margin: 1.3rem 0 .2rem; color: var(--creme); }
 .contagem div { min-width: 52px; }
+.contagem--passou { font-size: .86rem; text-transform: uppercase; letter-spacing: .2em; opacity: .9; margin-top: 1.5rem; }
 .contagem .num { font-size: 1.7rem; font-weight: 600; line-height: 1; }
 .contagem .rot { font-size: 0.62rem; text-transform: uppercase; letter-spacing: .16em; opacity: .8; margin-top: .2rem; }
 

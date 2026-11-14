@@ -130,7 +130,10 @@
     grade.innerHTML = '';
     fetch(BASE + '?action=listar').then(function (r) { return r.json(); }).then(function (r) {
       albumCarregado = true;
-      itensAlbum = (r && r.itens) || [];
+      // Envios de teste (feitos com o nome "TESTE Claude ...") nunca aparecem.
+      itensAlbum = ((r && r.itens) || []).filter(function (it) {
+        return !/^teste claude/i.test(it.nome || '');
+      });
       renderGrade();
     }).catch(function () {
       albumMsg.hidden = false; albumMsg.classList.add('erro');
@@ -149,12 +152,26 @@
     albumMsg.hidden = true;
     lista.forEach(function (it, idx) {
       var cel = document.createElement('button'); cel.type = 'button'; cel.className = 'cel';
-      var img = document.createElement('img'); img.loading = 'lazy'; img.alt = ''; img.src = thumbUrl(it.id, 600);
+      var img = document.createElement('img'); img.loading = 'lazy'; img.alt = '';
+      // Arquivo apagado do Drive (ou miniatura indisponível): some da galeria
+      // em vez de deixar um quadro quebrado.
+      img.addEventListener('error', function () {
+        it._indisponivel = true;
+        if (cel.parentNode) cel.parentNode.removeChild(cel);
+        if (!grade.children.length) {
+          albumMsg.hidden = false; albumMsg.classList.remove('erro');
+          albumMsg.textContent = 'Nada por aqui ainda. Envie a primeira foto!';
+        }
+      });
+      img.src = thumbUrl(it.id, 600);
       cel.appendChild(img);
       if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
       if (it.nome) { var nm = document.createElement('span'); nm.className = 'cel-nome'; nm.textContent = it.nome; cel.appendChild(nm); }
       if (it.missao && labelMissao(it.missao)) { var mt = document.createElement('span'); mt.className = 'cel-missao'; mt.textContent = labelMissao(it.missao); cel.appendChild(mt); }
-      cel.addEventListener('click', function () { abrirLb(lista, idx); });
+      cel.addEventListener('click', function () {
+        var visiveis = lista.filter(function (x) { return !x._indisponivel; });
+        abrirLb(visiveis, Math.max(0, visiveis.indexOf(it)));
+      });
       grade.appendChild(cel);
     });
   }

@@ -249,10 +249,17 @@
   function iniciarContagem() {
     var alvo = new Date(C.evento.dataISO).getTime();
     var cont = $('#contagem');
+    var timer = null;
     function tick() {
       var d = alvo - Date.now();
       if (isNaN(alvo)) { cont.textContent = ''; return; }
-      var neg = d < 0; d = Math.abs(d);
+      // Evento já aconteceu: sai a contagem, entra um agradecimento.
+      if (d < 0) {
+        cont.className = 'contagem contagem--passou';
+        cont.textContent = 'Obrigado por todo o carinho';
+        if (timer) clearInterval(timer);
+        return;
+      }
       var dias = Math.floor(d / 86400000);
       var horas = Math.floor(d % 86400000 / 3600000);
       var min = Math.floor(d % 3600000 / 60000);
@@ -264,10 +271,9 @@
           el('div', { class: 'rot', text: par[1] })
         ]));
       });
-      if (neg) { /* evento já ocorreu — a Mariana decide a mensagem */ }
     }
+    timer = setInterval(tick, 1000);
     tick();
-    setInterval(tick, 1000);
   }
 
   // ---- RSVP (nominal; sem observação; vira resumo depois de responder) ----
