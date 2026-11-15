@@ -20,7 +20,7 @@ window.FOTOS_OFICIAIS = {
       itens: []
     },
     {
-      titulo: 'Cerimônia religiosa',
+      titulo: 'Jantar',
       data: '12.11.2026',
       credito: '',
       emBreve: true,
