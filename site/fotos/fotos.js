@@ -1,7 +1,12 @@
 /**
- * fotos.js — álbum colaborativo (upload direto para o Google Drive).
+ * fotos.js — álbum do casamento.
  *
- * Para cada arquivo:
+ * Duas coleções, com a mesma cara (seletores + grade + foto ampliada):
+ *   - Fotos oficiais (fotógrafo): lista de oficiais.js, atualizada pelo backend
+ *     (action=oficiais) quando ele souber listar as pastas do Drive;
+ *   - Dos convidados: enviadas por aqui (action=listar).
+ *
+ * Envio (botão "Enviar" nas fotos dos convidados), para cada arquivo:
  *   1. pede ao Apps Script uma sessão de upload (POST criarSessao);
  *   2. envia os BYTES direto para a URL da sessão com PUT (progresso real);
  *   3. avisa o Apps Script que terminou (POST confirmar).
@@ -12,155 +17,44 @@
 
   var CFG = window.FOTOS_CONFIG || {};
   var BASE = CFG.BASE_URL || '';
-  var LIMITES = { foto: 50, video: 300, outro: 50 }; // MB (só para mensagem amigável)
+  var temBackend = !!BASE && BASE.indexOf('COLE_AQUI') !== 0;
 
-  // Missões do "jogo". As 4 primeiras são as do cartão impresso; as marcadas
-  // como 'bonus' existem só no site. Para mudar/adicionar, edite só esta lista.
-  var MISSOES = [
-    { id: 'mesa',     label: 'Foto de toda a mesa', grupo: 'card' },
-    { id: 'selfie',   label: 'Uma selfie',          grupo: 'card' },
-    { id: 'danca',    label: 'A primeira dança',    grupo: 'card' },
-    { id: 'criativo', label: 'Seja criativo!',      grupo: 'card' },
-    { id: 'brinde',   label: 'Um brinde',           grupo: 'bonus' },
-    { id: 'casal',    label: 'O casal juntos',      grupo: 'bonus' },
-    { id: 'pista',    label: 'A galera na pista',   grupo: 'bonus' }
-  ];
-  var missaoAtual = '';
+  // Missões do jogo da festa. O menu saiu do site; a lista fica só para dar
+  // nome às fotos que foram enviadas com uma missão.
+  var MISSOES = {
+    mesa: 'Foto de toda a mesa', selfie: 'Uma selfie', danca: 'A primeira dança',
+    criativo: 'Seja criativo!', brinde: 'Um brinde', casal: 'O casal juntos', pista: 'A galera na pista'
+  };
+  function labelMissao(id) { return MISSOES[id] || ''; }
 
-  var elNome   = document.getElementById('nome');
-  var elInput  = document.getElementById('arquivo');
-  var elBotao  = document.getElementById('btn-add');
-  var elAviso  = document.getElementById('aviso');
-  var elLista  = document.getElementById('lista');
-  var elResumo = document.getElementById('resumo');
-  var elHp     = document.getElementById('hp');
-  var elBanner = document.getElementById('missao-banner');
-
-  var ticket = null;
-  var fila = [];         // itens { file, el, barra, estado }
-  var idx = 0;           // ponteiro sequencial
-  var enviando = false;
-  var cont = { ok: 0, erro: 0 };
+  function $(id) { return document.getElementById(id); }
+  function cada(lista, fn) { Array.prototype.forEach.call(lista, fn); }
 
   // ---- API ----------------------------------------------------------------
   function post(action, corpo) {
+    var dados = { action: action };
+    for (var k in corpo) if (corpo.hasOwnProperty(k)) dados[k] = corpo[k];
     return fetch(BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita preflight CORS
-      body: JSON.stringify(assign({ action: action }, corpo))
+      body: JSON.stringify(dados)
     }).then(function (r) { return r.json(); });
   }
-  function pegarTicket() {
-    return fetch(BASE + '?action=ticket')
-      .then(function (r) { return r.json(); })
-      .then(function (r) { if (r && r.ok) ticket = r.ticket; return r; });
-  }
-  function assign(a, b) { for (var k in b) if (b.hasOwnProperty(k)) a[k] = b[k]; return a; }
-
-  // ---- Nome do convidado (lembra entre envios / reaproveita o login) ------
-  function nomeSalvo() {
-    try {
-      return (localStorage.getItem('fm.fotos.nome') ||
-              localStorage.getItem('caseuri.nome') || '').trim();
-    } catch (_) { return ''; }
-  }
-  function lembrarNome(n) { try { if (n) localStorage.setItem('fm.fotos.nome', n); } catch (_) {} }
-
-  // Se já sabemos o nome (deste álbum ou do login no site), não pergunta de
-  // novo: mostra "Enviando como X · trocar".
-  function montarNome() {
-    var salvo = nomeSalvo();
-    if (!salvo) return;
-    elNome.value = salvo;
-    var campo = document.querySelector('.campo-nome');
-    if (!campo) return;
-    campo.hidden = true;
-    var box = document.createElement('div');
-    box.className = 'nome-compacto';
-    box.innerHTML = 'Enviando como <strong></strong> · <a href="#" class="trocar">trocar</a>';
-    box.querySelector('strong').textContent = salvo;
-    campo.parentNode.insertBefore(box, campo);
-    box.querySelector('.trocar').addEventListener('click', function (ev) {
-      ev.preventDefault();
-      box.remove(); campo.hidden = false; elNome.focus();
-    });
-  }
-
-  // ---- Galeria (álbum) ----------------------------------------------------
-  var tabEnviar  = document.getElementById('tab-enviar');
-  var tabAlbum   = document.getElementById('tab-album');
-  var paneEnviar = document.getElementById('pane-enviar');
-  var paneAlbum  = document.getElementById('pane-album');
-  var grade      = document.getElementById('grade');
-  var albumMsg   = document.getElementById('album-msg');
-  var lb         = document.getElementById('lb');
-  var lbMedia    = document.getElementById('lb-media');
-  var itensAlbum = [], filtroAtual = 'todos', albumCarregado = false, lbLista = [], lbIdx = 0;
-
-  function setupAbas() {
-    tabEnviar.addEventListener('click', function () { mostrarPane('enviar'); });
-    if (tabMissoes) tabMissoes.addEventListener('click', function () { mostrarPane('missoes'); });
-    tabAlbum.addEventListener('click', function () { mostrarPane('album'); });
-    Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (b) {
-      b.addEventListener('click', function () {
-        filtroAtual = b.getAttribute('data-f');
-        Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (x) {
-          x.classList.toggle('ativa', x === b);
-        });
-        renderGrade();
-      });
-    });
-    setupOrigem();
-    document.getElementById('lb-fechar').addEventListener('click', fecharLb);
-    document.getElementById('lb-prev').addEventListener('click', function () { navLb(-1); });
-    document.getElementById('lb-next').addEventListener('click', function () { navLb(1); });
-    lb.addEventListener('click', function (e) { if (e.target === lb) fecharLb(); });
-  }
-  function mostrarPane(qual) {
-    paneEnviar.hidden = qual !== 'enviar';
-    paneAlbum.hidden  = qual !== 'album';
-    if (paneMissoes) paneMissoes.hidden = qual !== 'missoes';
-    tabEnviar.classList.toggle('ativa', qual === 'enviar');
-    tabAlbum.classList.toggle('ativa', qual === 'album');
-    if (tabMissoes) tabMissoes.classList.toggle('ativa', qual === 'missoes');
-    if (qual === 'album') abrirAlbum();
-    if (qual === 'missoes') renderMissoes();
-  }
-  function carregarAlbum() {
-    albumMsg.hidden = false; albumMsg.classList.remove('erro'); albumMsg.textContent = 'Carregando…';
-    grade.innerHTML = '';
-    fetch(BASE + '?action=listar').then(function (r) { return r.json(); }).then(function (r) {
-      albumCarregado = true;
-      // Envios de teste (feitos com o nome "TESTE Claude ...") nunca aparecem.
-      itensAlbum = ((r && r.itens) || []).filter(function (it) {
-        return !/^teste claude/i.test(it.nome || '');
-      });
-      renderGrade();
-    }).catch(function () {
-      albumMsg.hidden = false; albumMsg.classList.add('erro');
-      albumMsg.textContent = 'Não deu pra carregar agora. Tente de novo.';
-    });
-  }
   function thumbUrl(id, w) { return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 600); }
-  function renderGrade() {
-    grade.innerHTML = '';
-    var lista = itensAlbum.filter(function (it) { return filtroAtual === 'todos' || it.cat === filtroAtual; });
-    if (!lista.length) {
-      albumMsg.hidden = false; albumMsg.classList.remove('erro');
-      albumMsg.textContent = albumCarregado ? 'Nada por aqui ainda. Envie a primeira foto!' : 'Carregando…';
-      return;
-    }
-    albumMsg.hidden = true;
-    lista.forEach(function (it) {
-      grade.appendChild(criarCel(it, lista, function () {
-        if (!grade.children.length) {
-          albumMsg.hidden = false; albumMsg.classList.remove('erro');
-          albumMsg.textContent = 'Nada por aqui ainda. Envie a primeira foto!';
-        }
-      }));
-    });
-  }
-  // Uma célula da grade (serve para fotos dos convidados e para as oficiais).
+
+  // ---- Elementos ----------------------------------------------------------
+  var barraOrigem = $('album-origem');
+  var elEspera    = $('album-espera');
+  var secOficiais = $('album-oficiais');
+  var secConv     = $('album-convidados');
+  var chipsOf     = $('oficiais-chips');
+  var gradeOf     = $('oficiais-grade');
+  var grade       = $('grade');
+  var albumMsg    = $('album-msg');
+  var lb          = $('lb');
+  var lbMedia     = $('lb-media');
+
+  // ---- Célula da grade (igual para oficiais e convidados) -----------------
   function criarCel(it, lista, aoSumir) {
     var cel = document.createElement('button'); cel.type = 'button'; cel.className = 'cel';
     var img = document.createElement('img'); img.loading = 'lazy'; img.alt = '';
@@ -175,7 +69,7 @@
     cel.appendChild(img);
     if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
     if (it.nome) { var nm = document.createElement('span'); nm.className = 'cel-nome'; nm.textContent = it.nome; cel.appendChild(nm); }
-    if (it.missao && labelMissao(it.missao)) { var mt = document.createElement('span'); mt.className = 'cel-missao'; mt.textContent = labelMissao(it.missao); cel.appendChild(mt); }
+    if (labelMissao(it.missao)) { var mt = document.createElement('span'); mt.className = 'cel-missao'; mt.textContent = labelMissao(it.missao); cel.appendChild(mt); }
     cel.addEventListener('click', function () {
       var visiveis = lista.filter(function (x) { return !x._indisponivel; });
       abrirLb(visiveis, Math.max(0, visiveis.indexOf(it)));
@@ -183,31 +77,30 @@
     return cel;
   }
 
-  // ---- Fotos oficiais (fotógrafo) -----------------------------------------
-  // Separadas das fotos enviadas pelos convidados. A lista vem de oficiais.js
-  // (fixa) e, quando o backend souber listar as pastas (action=oficiais), é
-  // atualizada sozinha com o que estiver nas pastas do Drive.
+  // ---- Fotos oficiais -----------------------------------------------------
   // A seção só aparece depois de confirmar que as fotos estão visíveis ao
-  // público (pasta compartilhada por link); senão o álbum fica como sempre.
-  function normalizarOficiais(albuns) {
-    return (albuns || []).map(function (a) {
-      var itens = (a.itens || []).map(function (x) {
-        return { id: x.id, cat: x.cat === 'video' ? 'video' : 'foto', oficial: a.titulo };
-      });
-      return { chave: a.chave || a.titulo, titulo: a.titulo, data: a.data || '', credito: a.credito || '', emBreve: !!a.emBreve, itens: itens };
+  // público (pasta compartilhada por link); senão ficam só as dos convidados.
+  var OFICIAIS = ((window.FOTOS_OFICIAIS && window.FOTOS_OFICIAIS.albuns) || []).map(function (a) {
+    var alb = { chave: a.chave || a.titulo, titulo: a.titulo, rotulo: a.rotulo || a.titulo, itens: [] };
+    alb.itens = itensOficiais(a.itens, alb);
+    return alb;
+  });
+  function itensOficiais(itens, alb) {
+    return (itens || []).map(function (x) {
+      return { id: x.id, cat: x.cat === 'video' ? 'video' : 'foto', oficial: alb.titulo };
     });
   }
-  var OFICIAIS = normalizarOficiais(window.FOTOS_OFICIAIS && window.FOTOS_OFICIAIS.albuns);
   var oficiaisOk = null;            // null = ainda não testado; true/false = resultado
+  var oficialAtual = '';            // chave do álbum oficial selecionado
+  var oficiaisRenderizadas = false;
   var origemAtual = 'convidados';
   var origemEscolhida = false;      // a pessoa já tocou na chave?
-  var albumAberto = false;
 
-  function existemOficiais() { return OFICIAIS.some(function (a) { return a.itens.length > 0; }); }
+  function albunsComFotos() { return OFICIAIS.filter(function (a) { return a.itens.length > 0; }); }
 
-  // Testa se dá para ver as oficiais sem login (carrega uma miniatura de cada álbum).
+  // Testa se dá para ver as oficiais sem login (uma miniatura de cada álbum).
   function testarOficiais(cb) {
-    var alvos = OFICIAIS.filter(function (a) { return a.itens.length; }).map(function (a) { return a.itens[0].id; });
+    var alvos = albunsComFotos().map(function (a) { return a.itens[0].id; });
     if (!alvos.length) return cb(false);
     var pend = alvos.length, feito = false;
     function fim(ok) { if (feito) return; if (ok || --pend <= 0) { feito = true; cb(!!ok); } }
@@ -220,85 +113,35 @@
     setTimeout(function () { if (!feito) { feito = true; cb(false); } }, 6000);
   }
 
-  function setupOrigem() {
-    var barra = document.getElementById('album-origem');
-    if (!barra) return;
-    Array.prototype.forEach.call(barra.querySelectorAll('.origem-btn'), function (b) {
-      b.addEventListener('click', function () { origemEscolhida = true; mostrarOrigem(b.getAttribute('data-o')); });
-    });
-  }
-  function atualizarBarraOrigem() {
-    var barra = document.getElementById('album-origem'), intro = document.getElementById('convidados-intro');
-    if (barra) barra.hidden = !oficiaisOk;
-    if (intro) intro.hidden = !oficiaisOk;
-  }
-  // Chamado ao abrir a aba Álbum.
-  function abrirAlbum() {
-    if (albumAberto) return mostrarOrigem(origemAtual);
-    albumAberto = true;
-    buscarOficiaisNoBackend();
-    if (!existemOficiais()) { oficiaisOk = false; return mostrarOrigem('convidados'); }
-    var espera = document.getElementById('album-espera');
-    var of = document.getElementById('album-oficiais'), cv = document.getElementById('album-convidados');
-    if (espera) espera.hidden = false; if (of) of.hidden = true; if (cv) cv.hidden = true;
-    testarOficiais(function (ok) {
-      if (espera) espera.hidden = true;
-      if (oficiaisOk === true) return;          // a lista do backend já confirmou antes
-      oficiaisOk = ok;
-      atualizarBarraOrigem();
-      mostrarOrigem(ok && !origemEscolhida ? 'oficiais' : origemAtual);
-    });
-  }
-  function mostrarOrigem(qual) {
-    origemAtual = (qual === 'oficiais' && oficiaisOk) ? 'oficiais' : 'convidados';
-    var of = document.getElementById('album-oficiais'), cv = document.getElementById('album-convidados');
-    if (of) of.hidden = origemAtual !== 'oficiais';
-    if (cv) cv.hidden = origemAtual !== 'convidados';
-    Array.prototype.forEach.call(document.querySelectorAll('.origem-btn'), function (b) {
-      var ativa = b.getAttribute('data-o') === origemAtual;
-      b.classList.toggle('ativa', ativa); b.setAttribute('aria-pressed', ativa ? 'true' : 'false');
-    });
-    if (origemAtual === 'oficiais') renderOficiais();
-    else if (!albumCarregado) carregarAlbum();
-  }
-  var oficiaisRenderizadas = false;
   function renderOficiais() {
     if (oficiaisRenderizadas) return;
     oficiaisRenderizadas = true;
-    var alvo = document.getElementById('oficiais-lista');
-    alvo.innerHTML = '';
-    OFICIAIS.forEach(function (a) {
-      if (!a.itens.length && !a.emBreve) return;
-      var bloco = document.createElement('section'); bloco.className = 'of-bloco';
-      var cab = document.createElement('div'); cab.className = 'of-cab';
-      var selo = document.createElement('span'); selo.className = 'of-selo'; selo.textContent = 'Fotos oficiais';
-      var tit = document.createElement('h2'); tit.className = 'of-titulo'; tit.textContent = a.titulo;
-      var meta = document.createElement('p'); meta.className = 'of-meta';
-      function escreverMeta() {
-        var n = a.itens.filter(function (x) { return !x._indisponivel; }).length, partes = [];
-        if (a.data) partes.push(a.data);
-        if (n) partes.push(n + (n === 1 ? ' foto' : ' fotos'));
-        if (a.credito) partes.push('Fotografia: ' + a.credito);
-        meta.textContent = partes.join(' · ');
-      }
-      escreverMeta();
-      cab.appendChild(selo); cab.appendChild(tit); cab.appendChild(meta);
-      bloco.appendChild(cab);
-      if (a.itens.length) {
-        var g = document.createElement('div'); g.className = 'grade';
-        a.itens.forEach(function (it) { g.appendChild(criarCel(it, a.itens, escreverMeta)); });
-        bloco.appendChild(g);
-      } else {
-        var eb = document.createElement('p'); eb.className = 'of-embreve';
-        eb.textContent = 'Em breve por aqui.';
-        bloco.appendChild(eb);
-      }
-      alvo.appendChild(bloco);
+    var albuns = albunsComFotos();
+    if (!albuns.some(function (a) { return a.chave === oficialAtual; })) oficialAtual = albuns.length ? albuns[0].chave : '';
+
+    chipsOf.innerHTML = '';
+    albuns.forEach(function (a) {
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'chip' + (a.chave === oficialAtual ? ' ativa' : '');
+      b.textContent = a.rotulo;
+      b.addEventListener('click', function () {
+        if (oficialAtual === a.chave) return;
+        oficialAtual = a.chave; oficiaisRenderizadas = false; renderOficiais();
+      });
+      chipsOf.appendChild(b);
+    });
+    chipsOf.hidden = albuns.length < 2;       // um álbum só: seletor não faz sentido
+
+    gradeOf.innerHTML = '';
+    albuns.forEach(function (a) {
+      if (a.chave !== oficialAtual) return;
+      a.itens.forEach(function (it) { if (!it._indisponivel) gradeOf.appendChild(criarCel(it, a.itens)); });
     });
   }
+
   // Lista atual das pastas oficiais no Drive (se o backend já tiver essa ação).
   function buscarOficiaisNoBackend() {
-    if (!BASE || BASE.indexOf('COLE_AQUI') === 0) return;
+    if (!temBackend) return;
     fetch(BASE + '?action=oficiais').then(function (r) { return r.json(); }).then(function (r) {
       if (!r || !r.ok || !r.albuns) return;                 // backend antigo: fica a lista fixa
       var mudou = false;
@@ -309,7 +152,7 @@
         var antes = alvo.itens.map(function (x) { return x.id; }).join(',');
         var agora = b.itens.map(function (x) { return x.id; }).join(',');
         if (antes === agora) return;
-        alvo.itens = b.itens.map(function (x) { return { id: x.id, cat: x.cat === 'video' ? 'video' : 'foto', oficial: alvo.titulo }; });
+        alvo.itens = itensOficiais(b.itens, alvo);
         mudou = true;
       });
       if (!mudou) return;
@@ -318,33 +161,88 @@
       // Antes não havia oficiais visíveis: testa de novo com a lista nova.
       testarOficiais(function (ok) {
         if (!ok) return;
-        oficiaisOk = true; atualizarBarraOrigem();
-        var espera = document.getElementById('album-espera');
-        if (espera) espera.hidden = true;
-        if (!origemEscolhida && !paneAlbum.hidden) mostrarOrigem('oficiais');
+        oficiaisOk = true; elEspera.hidden = true;
+        if (!origemEscolhida) mostrarOrigem('oficiais'); else atualizarChave();
       });
     }).catch(function () {});
   }
 
+  // ---- Chave oficiais x convidados ----------------------------------------
+  function atualizarChave() {
+    barraOrigem.hidden = !oficiaisOk;
+    cada(barraOrigem.querySelectorAll('.origem-btn'), function (b) {
+      var ativa = b.getAttribute('data-o') === origemAtual;
+      b.classList.toggle('ativa', ativa); b.setAttribute('aria-pressed', ativa ? 'true' : 'false');
+    });
+  }
+  function mostrarOrigem(qual) {
+    origemAtual = (qual === 'oficiais' && oficiaisOk) ? 'oficiais' : 'convidados';
+    secOficiais.hidden = origemAtual !== 'oficiais';
+    secConv.hidden = origemAtual !== 'convidados';
+    atualizarChave();
+    if (origemAtual === 'oficiais') renderOficiais();
+    else if (!albumCarregado) carregarAlbum();
+  }
+  function abrirAlbum(preferida) {
+    buscarOficiaisNoBackend();
+    if (preferida === 'convidados') origemEscolhida = true;
+    if (!albunsComFotos().length) { oficiaisOk = false; return mostrarOrigem('convidados'); }
+    if (preferida === 'convidados') mostrarOrigem('convidados'); else elEspera.hidden = false;
+    testarOficiais(function (ok) {
+      elEspera.hidden = true;
+      if (oficiaisOk === true) return;          // a lista do backend já confirmou antes
+      oficiaisOk = ok;
+      mostrarOrigem(ok && !origemEscolhida ? 'oficiais' : origemAtual);
+    });
+  }
+
+  // ---- Fotos dos convidados -----------------------------------------------
+  var itensAlbum = [], filtroAtual = 'todos', albumCarregado = false;
+
+  function carregarAlbum() {
+    albumCarregado = true;
+    albumMsg.hidden = false; albumMsg.classList.remove('erro'); albumMsg.textContent = 'Carregando…';
+    grade.innerHTML = '';
+    if (!temBackend) { albumMsg.textContent = ''; return; }
+    fetch(BASE + '?action=listar').then(function (r) { return r.json(); }).then(function (r) {
+      // Envios de teste (feitos com o nome "TESTE Claude ...") nunca aparecem.
+      itensAlbum = ((r && r.itens) || []).filter(function (it) {
+        return !/^teste claude/i.test(it.nome || '');
+      });
+      renderGrade();
+    }).catch(function () {
+      albumCarregado = false;
+      albumMsg.hidden = false; albumMsg.classList.add('erro');
+      albumMsg.textContent = 'Não carregou. Tente de novo.';
+    });
+  }
+  function renderGrade() {
+    grade.innerHTML = '';
+    var lista = itensAlbum.filter(function (it) { return filtroAtual === 'todos' || it.cat === filtroAtual; });
+    function vazio() { albumMsg.hidden = false; albumMsg.classList.remove('erro'); albumMsg.textContent = 'Nada por aqui ainda.'; }
+    if (!lista.length) return vazio();
+    albumMsg.hidden = true;
+    lista.forEach(function (it) {
+      grade.appendChild(criarCel(it, lista, function () { if (!grade.children.length) vazio(); }));
+    });
+  }
+
+  // ---- Foto ampliada ------------------------------------------------------
+  var lbLista = [], lbIdx = 0;
   function abrirLb(lista, idx) { lbLista = lista; lbIdx = idx; mostrarLb(); lb.hidden = false; document.body.style.overflow = 'hidden'; }
   function fecharLb() { lb.hidden = true; lbMedia.innerHTML = ''; document.body.style.overflow = ''; }
   function navLb(d) { if (!lbLista.length) return; lbIdx = (lbIdx + d + lbLista.length) % lbLista.length; mostrarLb(); }
   function mostrarLb() {
     var it = lbLista[lbIdx]; lbMedia.innerHTML = '';
-    var cap = document.getElementById('lb-cap');
-    if (cap) {
-      var partes = [];
-      if (it.oficial) partes.push((it.cat === 'video' ? 'Vídeo oficial' : 'Foto oficial') + ' · ' + it.oficial);
-      if (it.nome) partes.push('Enviado por ' + it.nome);
-      if (it.missao && labelMissao(it.missao)) partes.push('Missão: ' + labelMissao(it.missao));
-      cap.textContent = partes.join(' · ');
-    }
+    var partes = [];
+    if (it.oficial) partes.push((it.cat === 'video' ? 'Vídeo oficial' : 'Foto oficial') + ' · ' + it.oficial);
+    if (it.nome) partes.push('Enviado por ' + it.nome);
+    if (labelMissao(it.missao)) partes.push('Missão: ' + labelMissao(it.missao));
+    $('lb-cap').textContent = partes.join(' · ');
     // Baixar o original direto do Drive (o arquivo já é público por link).
-    var baixar = document.getElementById('lb-baixar');
-    if (baixar) {
-      baixar.href = 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(it.id);
-      baixar.setAttribute('aria-label', it.cat === 'video' ? 'Baixar vídeo original' : 'Baixar foto original');
-    }
+    var baixar = $('lb-baixar');
+    baixar.href = 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(it.id);
+    baixar.setAttribute('aria-label', it.cat === 'video' ? 'Baixar vídeo original' : 'Baixar foto original');
     if (it.cat === 'video') {
       var ifr = document.createElement('iframe');
       ifr.src = 'https://drive.google.com/file/d/' + it.id + '/preview';
@@ -356,116 +254,72 @@
     }
   }
 
-  // ---- Missões (jogo) -----------------------------------------------------
-  var tabMissoes   = document.getElementById('tab-missoes');
-  var paneMissoes  = document.getElementById('pane-missoes');
-  var missoesLista = document.getElementById('missoes-lista');
+  // ---- Envio --------------------------------------------------------------
+  var paneEnviar = $('pane-enviar');
+  var btnEnviar  = $('btn-enviar');
+  var elNome   = $('nome');
+  var elInput  = $('arquivo');
+  var elBotao  = $('btn-add');
+  var elAviso  = $('aviso');
+  var elLista  = $('lista');
+  var elResumo = $('resumo');
+  var elHp     = $('hp');
 
-  function labelMissao(id) {
-    for (var i = 0; i < MISSOES.length; i++) if (MISSOES[i].id === id) return MISSOES[i].label;
-    return '';
+  var ticket = null, pedindoTicket = false;
+  var fila = [];         // itens { file, el, barra, estado }
+  var idx = 0;           // ponteiro sequencial
+  var enviando = false;
+  var cont = { ok: 0, erro: 0 };
+
+  function avisar(msg, erro) {
+    elAviso.textContent = msg || '';
+    elAviso.hidden = !msg;
+    elAviso.classList.toggle('erro', !!erro);
   }
-  function missoesFeitas() {
-    try { return JSON.parse(localStorage.getItem('fm.fotos.missoes') || '{}') || {}; }
-    catch (_) { return {}; }
+
+  // Nome do convidado: lembra entre envios e reaproveita o login do site.
+  function nomeSalvo() {
+    try {
+      return (localStorage.getItem('fm.fotos.nome') ||
+              localStorage.getItem('caseuri.nome') || '').trim();
+    } catch (_) { return ''; }
   }
-  function marcarMissaoFeita(id) {
-    if (!id) return;
-    try { var o = missoesFeitas(); o[id] = true; localStorage.setItem('fm.fotos.missoes', JSON.stringify(o)); }
-    catch (_) {}
-  }
-  function renderMissoes() {
-    if (!missoesLista) return;
-    var feitas = missoesFeitas();
-    missoesLista.innerHTML = '';
-    [{ chave: 'card', titulo: 'Do seu cartão' }, { chave: 'bonus', titulo: 'Bônus (só no site)' }].forEach(function (g) {
-      var doGrupo = MISSOES.filter(function (m) { return m.grupo === g.chave; });
-      if (!doGrupo.length) return;
-      var h = document.createElement('p');
-      h.className = 'missao-grupo'; h.textContent = g.titulo;
-      missoesLista.appendChild(h);
-      doGrupo.forEach(function (m) {
-        var feita = !!feitas[m.id];
-        var row = document.createElement('div');
-        row.className = 'missao-row' + (feita ? ' feita' : '');
-        var marca = document.createElement('span');
-        marca.className = 'missao-check'; marca.textContent = feita ? '✓' : '';
-        var lab = document.createElement('span');
-        lab.className = 'missao-label'; lab.textContent = m.label;
-        var bt = document.createElement('button');
-        bt.type = 'button'; bt.className = 'missao-btn';
-        bt.textContent = feita ? 'Enviar mais' : 'Enviar';
-        bt.addEventListener('click', function () { escolherMissao(m.id); });
-        row.appendChild(marca); row.appendChild(lab); row.appendChild(bt);
-        missoesLista.appendChild(row);
-      });
+  function lembrarNome(n) { try { if (n) localStorage.setItem('fm.fotos.nome', n); } catch (_) {} }
+  // Se já sabemos o nome, não pergunta de novo: "Enviando como X · trocar".
+  function montarNome() {
+    var salvo = nomeSalvo();
+    if (!salvo) return;
+    elNome.value = salvo;
+    var campo = document.querySelector('.campo-nome');
+    campo.hidden = true;
+    var box = document.createElement('div');
+    box.className = 'nome-compacto';
+    box.innerHTML = 'Enviando como <strong></strong> · <a href="#" class="trocar">trocar</a>';
+    box.querySelector('strong').textContent = salvo;
+    campo.parentNode.insertBefore(box, campo);
+    box.querySelector('.trocar').addEventListener('click', function (ev) {
+      ev.preventDefault();
+      box.parentNode.removeChild(box); campo.hidden = false; elNome.focus();
     });
   }
-  function escolherMissao(id) {
-    missaoAtual = id || '';
-    atualizarBanner();
-    mostrarPane('enviar');
-    if (!elBotao.disabled) elInput.click();
-  }
-  function atualizarBanner() {
-    if (!elBanner) return;
-    elBanner.hidden = false;
-    if (missaoAtual) {
-      elBanner.className = 'missao-banner ativa';
-      elBanner.innerHTML = 'Missão: <strong></strong> · <a href="#" class="link-missao">enviar livre</a>';
-      elBanner.querySelector('strong').textContent = labelMissao(missaoAtual);
-      elBanner.querySelector('.link-missao').addEventListener('click', function (ev) {
-        ev.preventDefault(); missaoAtual = ''; atualizarBanner();
-      });
-    } else {
-      elBanner.className = 'missao-banner';
-      elBanner.innerHTML = 'Envio livre · <a href="#" class="link-missao">escolher missão</a>';
-      elBanner.querySelector('.link-missao').addEventListener('click', function (ev) {
-        ev.preventDefault(); mostrarPane('missoes');
-      });
-    }
-  }
 
-  // ---- Inicialização ------------------------------------------------------
-  function iniciar() {
-    montarNome();
-    setupAbas();
-    atualizarBanner();
-    // Link direto para a galeria (ex.: botão "Fotos" da página principal).
-    if (location.hash === '#album') mostrarPane('album');
-    if (!BASE || BASE.indexOf('COLE_AQUI') === 0) {
-      return falhaInicial('Configuração pendente (fotos-config.js).');
-    }
-    pegarTicket().then(function (r) {
-      if (r && r.ok) {
-        elBotao.disabled = false;
-        elAviso.textContent = 'Pode escolher da galeria. Dá pra enviar vários de uma vez.';
-      } else {
-        falhaInicial('Não foi possível iniciar agora. Recarregue a página.');
-      }
+  function abrirEnvio(abrir) {
+    paneEnviar.hidden = !abrir;
+    btnEnviar.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    if (!abrir || ticket || pedindoTicket) return;
+    if (!temBackend) return avisar('Envio indisponível no momento.', true);
+    // O ticket autoriza o envio; pede só quando a pessoa abre o painel.
+    pedindoTicket = true;
+    fetch(BASE + '?action=ticket').then(function (r) { return r.json(); }).then(function (r) {
+      pedindoTicket = false;
+      if (r && r.ok) { ticket = r.ticket; elBotao.disabled = false; avisar(''); }
+      else avisar('Não foi possível iniciar. Recarregue a página.', true);
     }).catch(function () {
-      falhaInicial('Sem conexão com o servidor. Verifique a internet e recarregue.');
+      pedindoTicket = false;
+      avisar('Sem conexão. Recarregue a página.', true);
     });
   }
-  function falhaInicial(msg) {
-    elBotao.disabled = true;
-    elAviso.textContent = msg;
-    elAviso.classList.add('erro');
-  }
 
-  elBotao.addEventListener('click', function () { if (!elBotao.disabled) elInput.click(); });
-  elInput.addEventListener('change', function () {
-    if (elHp.value) return; // honeypot: bot preencheu → ignora silenciosamente
-    var files = Array.prototype.slice.call(elInput.files || []);
-    elInput.value = '';
-    if (!files.length) return;
-    lembrarNome((elNome.value || '').trim());
-    elResumo.hidden = true;
-    files.forEach(adicionar);
-    processar();
-  });
-
-  // ---- UI por arquivo -----------------------------------------------------
   function miniatura(file) {
     var box = document.createElement('div');
     box.className = 'thumb';
@@ -504,7 +358,6 @@
       file: file, el: el,
       barra: el.querySelector('.barra i'),
       estado: el.querySelector('.item-estado'),
-      missao: missaoAtual,
       feito: false
     });
   }
@@ -519,7 +372,6 @@
     });
   }
 
-  // ---- Envio de um arquivo ------------------------------------------------
   function enviarUm(item, done) {
     var f = item.file;
     item.el.classList.remove('falhou');
@@ -530,7 +382,7 @@
       ticket: ticket,
       nome: (elNome.value || '').trim(),
       origin: location.origin,
-      missao: item.missao || '',
+      missao: '',
       arquivo: { nome: f.name, tipo: f.type, tamanho: f.size }
     }).then(function (r) {
       if (!r || !r.ok) throw r || { erro: 'interno' };
@@ -542,18 +394,15 @@
       item.estado.textContent = 'enviado ✓';
       item.estado.classList.add('ok');
       item.barra.style.width = '100%';
-      if (item.missao) marcarMissaoFeita(item.missao);
       cont.ok++; done();
-    }).catch(function (err) {
+    }).catch(function () {
       item.feito = true;
       cont.erro++;
       item.el.classList.add('falhou');
       item.estado.textContent = 'falhou';
       item.estado.classList.add('erro');
       mostrarRetry(item);
-      // registra a falha (best-effort), sem travar a fila
-      done();
-      void err;
+      done();                                   // não trava a fila
     });
   }
 
@@ -584,30 +433,70 @@
     a.className = 'retry';
     a.textContent = 'tentar de novo';
     a.addEventListener('click', function () {
-      a.remove();
+      a.parentNode.removeChild(a);
       item.feito = false;
       item.barra.style.width = '0';
       cont.erro = Math.max(0, cont.erro - 1);
-      // reenvia só este, respeitando a fila
-      var i = fila.indexOf(item);
+      var i = fila.indexOf(item);               // reenvia só este, respeitando a fila
       if (i < idx) idx = i;
       processar();
     });
     item.el.appendChild(a);
   }
 
-  // ---- Encerramento -------------------------------------------------------
   function finalizar() {
-    var total = cont.ok + cont.erro;
-    if (!total) return;
-    if (cont.ok) { albumCarregado = false; renderMissoes(); } // recarrega álbum e atualiza missões
-    elResumo.hidden = false;
-    var html = '<div class="selo">Obrigado 💛</div>';
-    if (cont.ok)  html += '<p>' + cont.ok + ' arquivo(s) enviado(s) com sucesso.</p>';
-    if (cont.erro) html += '<p>' + cont.erro + ' não foram enviados — use “tentar de novo” acima.</p>';
-    html += '<p class="mais">Quer mandar mais? É só tocar em “Adicionar fotos e vídeos”.</p>';
+    if (!(cont.ok + cont.erro)) return;
+    var html = '';
+    if (cont.ok)  html += '<p>' + cont.ok + (cont.ok === 1 ? ' arquivo enviado.' : ' arquivos enviados.') + ' Obrigado!</p>';
+    if (cont.erro) html += '<p>' + cont.erro + (cont.erro === 1 ? ' falhou' : ' falharam') + ' — toque em “tentar de novo”.</p>';
     elResumo.innerHTML = html;
-    elResumo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    elResumo.hidden = false;
+    if (cont.ok) carregarAlbum();               // os novos já entram na grade
+  }
+
+  // ---- Inicialização ------------------------------------------------------
+  function iniciar() {
+    montarNome();
+
+    cada(barraOrigem.querySelectorAll('.origem-btn'), function (b) {
+      b.addEventListener('click', function () { origemEscolhida = true; mostrarOrigem(b.getAttribute('data-o')); });
+    });
+    cada(document.querySelectorAll('.filtro'), function (b) {
+      b.addEventListener('click', function () {
+        filtroAtual = b.getAttribute('data-f');
+        cada(document.querySelectorAll('.filtro'), function (x) { x.classList.toggle('ativa', x === b); });
+        renderGrade();
+      });
+    });
+    $('lb-fechar').addEventListener('click', fecharLb);
+    $('lb-prev').addEventListener('click', function () { navLb(-1); });
+    $('lb-next').addEventListener('click', function () { navLb(1); });
+    lb.addEventListener('click', function (e) { if (e.target === lb) fecharLb(); });
+    document.addEventListener('keydown', function (e) {
+      if (lb.hidden) return;
+      if (e.key === 'Escape') fecharLb();
+      else if (e.key === 'ArrowLeft') navLb(-1);
+      else if (e.key === 'ArrowRight') navLb(1);
+    });
+
+    btnEnviar.addEventListener('click', function () { abrirEnvio(paneEnviar.hidden); });
+    elBotao.addEventListener('click', function () { if (!elBotao.disabled) elInput.click(); });
+    elInput.addEventListener('change', function () {
+      if (elHp.value) return;                   // honeypot: bot preencheu → ignora
+      var files = Array.prototype.slice.call(elInput.files || []);
+      elInput.value = '';
+      if (!files.length) return;
+      lembrarNome((elNome.value || '').trim());
+      elResumo.hidden = true;
+      files.forEach(adicionar);
+      processar();
+    });
+
+    // #enviar abre direto o envio; #convidados abre nas fotos dos convidados.
+    var h = location.hash;
+    if (h === '#enviar') { abrirAlbum('convidados'); abrirEnvio(true); }
+    else if (h === '#convidados') abrirAlbum('convidados');
+    else abrirAlbum();
   }
 
   iniciar();

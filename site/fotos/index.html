@@ -4,92 +4,81 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <title>Felipe &amp; Mariana · Fotos</title>
+  <title>Felipe &amp; Mariana · Álbum</title>
 
   <!-- Compartilhamento (WhatsApp / redes) — estático, o scraper não roda JS -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Felipe &amp; Mariana · Álbum do casamento">
-  <meta property="og:description" content="As fotos e vídeos do nosso casamento estão aqui. Veja, baixe e envie as suas.">
+  <meta property="og:description" content="Fotos e vídeos do nosso casamento.">
   <meta property="og:image" content="https://felipemariana.com.br/assets/og-casados.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="1200">
   <meta property="og:url" content="https://felipemariana.com.br/fotos/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#6b1e2e">
+  <meta name="theme-color" content="#481110">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../assets/favicon-192.png">
+  <link rel="apple-touch-icon" href="../assets/favicon-180.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="fotos.css">
 </head>
 <body>
-  <main class="tela">
-    <header class="capa">
-      <div class="monograma" role="img" aria-label="Monograma de Felipe e Mariana"></div>
-      <h1>Felipe &amp; Mariana</h1>
-      <p class="data">12 . 11 . 2026</p>
-      <p class="chamada">Compartilhe suas fotos e vídeos com a gente</p>
-    </header>
 
-    <nav class="abas" aria-label="Seções">
-      <button id="tab-enviar" class="aba ativa" type="button">Enviar</button>
-      <button id="tab-missoes" class="aba" type="button">Missões</button>
-      <button id="tab-album" class="aba" type="button">Álbum</button>
+  <!-- Topo no mesmo estilo da capa do site; o monograma volta para a página inicial -->
+  <header class="topo">
+    <a class="topo-mono" href="../" aria-label="Voltar para a página inicial">
+      <img src="../assets/monograma-creme.svg" alt="Monograma M F">
+    </a>
+    <h1 class="topo-titulo">Nosso álbum</h1>
+
+    <!-- Só aparece quando há fotos oficiais visíveis -->
+    <nav id="album-origem" class="origem" aria-label="Álbuns" hidden>
+      <button class="origem-btn" data-o="oficiais" type="button" aria-pressed="false">Fotos oficiais</button>
+      <button class="origem-btn" data-o="convidados" type="button" aria-pressed="false">Dos convidados</button>
     </nav>
+  </header>
 
-    <!-- ====== ENVIAR ====== -->
-    <section id="pane-enviar" class="cartao">
-      <label class="campo-nome">
-        <span>Seu nome <em>(opcional)</em></span>
-        <input id="nome" type="text" autocomplete="name" placeholder="Como você quer aparecer">
-      </label>
+  <main class="tela">
+    <p id="album-espera" class="aviso" hidden>Carregando…</p>
 
-      <p id="missao-banner" class="missao-banner" hidden></p>
-      <button id="btn-add" class="botao" type="button" disabled>Adicionar fotos e vídeos</button>
-      <input id="arquivo" type="file" accept="image/*,video/*,.heic,.heif,.mov" multiple hidden>
-
-      <p id="aviso" class="aviso">Preparando…</p>
-      <input id="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
-
-      <div id="lista" class="lista"></div>
-      <div id="resumo" class="resumo" hidden></div>
+    <!-- ====== FOTOS OFICIAIS (fotógrafo) ====== -->
+    <section id="album-oficiais" hidden>
+      <div id="oficiais-chips" class="chips"></div>
+      <div id="oficiais-grade" class="grade"></div>
     </section>
 
-    <!-- ====== ÁLBUM ====== -->
-    <section id="pane-album" hidden>
-      <!-- Só aparece quando há fotos oficiais (oficiais.js) -->
-      <div id="album-origem" class="origem" hidden>
-        <button class="origem-btn ativa" data-o="oficiais" type="button" aria-pressed="true">Fotos oficiais</button>
-        <button class="origem-btn" data-o="convidados" type="button" aria-pressed="false">Dos convidados</button>
-      </div>
-
-      <p id="album-espera" class="aviso" hidden>Carregando…</p>
-
-      <!-- Fotos oficiais (fotógrafo) -->
-      <div id="album-oficiais" hidden>
-        <div id="oficiais-lista"></div>
-      </div>
-
-      <!-- Fotos e vídeos enviados pelos convidados -->
-      <div id="album-convidados">
-        <p id="convidados-intro" class="album-intro" hidden>Fotos e vídeos enviados pelos convidados.</p>
-        <div class="filtros">
-          <button class="filtro ativa" data-f="todos" type="button">Todos</button>
-          <button class="filtro" data-f="foto" type="button">Fotos</button>
-          <button class="filtro" data-f="video" type="button">Vídeos</button>
+    <!-- ====== FOTOS DOS CONVIDADOS ====== -->
+    <section id="album-convidados" hidden>
+      <div class="barra-conv">
+        <div class="chips">
+          <button class="chip filtro ativa" data-f="todos" type="button">Todos</button>
+          <button class="chip filtro" data-f="foto" type="button">Fotos</button>
+          <button class="chip filtro" data-f="video" type="button">Vídeos</button>
         </div>
-        <div id="grade" class="grade"></div>
-        <p id="album-msg" class="aviso">Carregando…</p>
+        <button id="btn-enviar" class="btn-enviar" type="button" aria-expanded="false">Enviar</button>
       </div>
-    </section>
 
-    <!-- ====== MISSÕES ====== -->
-    <section id="pane-missoes" hidden>
-      <p class="missoes-intro">Complete as missões do seu cartão — e as bônus! Toque em “Enviar” pra mandar a foto de cada uma.</p>
-      <div id="missoes-lista" class="missoes-lista"></div>
-    </section>
+      <!-- Envio (abre pelo botão "Enviar") -->
+      <div id="pane-enviar" class="cartao" hidden>
+        <label class="campo-nome">
+          <span>Seu nome <em>(opcional)</em></span>
+          <input id="nome" type="text" autocomplete="name">
+        </label>
+        <button id="btn-add" class="botao" type="button" disabled>Escolher fotos e vídeos</button>
+        <input id="arquivo" type="file" accept="image/*,video/*,.heic,.heif,.mov" multiple hidden>
+        <p id="aviso" class="aviso" hidden></p>
+        <input id="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+        <div id="lista" class="lista"></div>
+        <div id="resumo" class="resumo" hidden></div>
+      </div>
 
-    <footer class="rodape">Suas fotos vão direto para o álbum dos noivos.</footer>
+      <div id="grade" class="grade"></div>
+      <p id="album-msg" class="aviso">Carregando…</p>
+    </section>
   </main>
 
   <!-- Lightbox -->

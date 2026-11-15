@@ -20,9 +20,8 @@ window.FOTOS_OFICIAIS = {
   albuns: [
     {
       chave: 'civil',
-      titulo: 'Casamento civil',
-      data: '12.11.2026',
-      credito: '',
+      titulo: 'Casamento civil',   // legenda da foto ampliada
+      rotulo: 'Civil',             // texto do seletor
       itens: [
         { id: '1wsKQ_ALwJ_Cy-PfXYwyzZ2V8_pGkB1JO', cat: 'foto' },
         { id: '1xmBE5lbkmYv0z2uD-IZ8AoaGjqZd8y0h', cat: 'foto' },
@@ -39,8 +38,7 @@ window.FOTOS_OFICIAIS = {
     {
       chave: 'jantar',
       titulo: 'Jantar',
-      data: '12.11.2026',
-      credito: '',
+      rotulo: 'Jantar',
       itens: [
         { id: '1q74uSTtj3Wa8_q0cGS-gOW4zqeQd23uU', cat: 'foto' },
         { id: '1-d0da50rt1f9QabB_KsxCUwqBwpCCrG5', cat: 'foto' },
