@@ -123,7 +123,7 @@
     tabEnviar.classList.toggle('ativa', qual === 'enviar');
     tabAlbum.classList.toggle('ativa', qual === 'album');
     if (tabMissoes) tabMissoes.classList.toggle('ativa', qual === 'missoes');
-    if (qual === 'album') mostrarOrigem(origemAtual);
+    if (qual === 'album') abrirAlbum();
     if (qual === 'missoes') renderMissoes();
   }
   function carregarAlbum() {
@@ -184,30 +184,73 @@
   }
 
   // ---- Fotos oficiais (fotógrafo) -----------------------------------------
-  // Vêm de oficiais.js (lista fixa de arquivos do Drive), separadas das fotos
-  // enviadas pelos convidados. Sem itens, a seção nem aparece.
-  var OFICIAIS = ((window.FOTOS_OFICIAIS && window.FOTOS_OFICIAIS.albuns) || []).map(function (a) {
-    var itens = (a.itens || []).map(function (x) {
-      return { id: x.id, cat: x.cat === 'video' ? 'video' : 'foto', oficial: a.titulo };
+  // Separadas das fotos enviadas pelos convidados. A lista vem de oficiais.js
+  // (fixa) e, quando o backend souber listar as pastas (action=oficiais), é
+  // atualizada sozinha com o que estiver nas pastas do Drive.
+  // A seção só aparece depois de confirmar que as fotos estão visíveis ao
+  // público (pasta compartilhada por link); senão o álbum fica como sempre.
+  function normalizarOficiais(albuns) {
+    return (albuns || []).map(function (a) {
+      var itens = (a.itens || []).map(function (x) {
+        return { id: x.id, cat: x.cat === 'video' ? 'video' : 'foto', oficial: a.titulo };
+      });
+      return { chave: a.chave || a.titulo, titulo: a.titulo, data: a.data || '', credito: a.credito || '', emBreve: !!a.emBreve, itens: itens };
     });
-    return { titulo: a.titulo, data: a.data || '', credito: a.credito || '', emBreve: !!a.emBreve, itens: itens };
-  });
-  var temOficiais = OFICIAIS.some(function (a) { return a.itens.length > 0; });
-  var origemAtual = temOficiais ? 'oficiais' : 'convidados';
-  var oficiaisRenderizadas = false;
+  }
+  var OFICIAIS = normalizarOficiais(window.FOTOS_OFICIAIS && window.FOTOS_OFICIAIS.albuns);
+  var oficiaisOk = null;            // null = ainda não testado; true/false = resultado
+  var origemAtual = 'convidados';
+  var origemEscolhida = false;      // a pessoa já tocou na chave?
+  var albumAberto = false;
+
+  function existemOficiais() { return OFICIAIS.some(function (a) { return a.itens.length > 0; }); }
+
+  // Testa se dá para ver as oficiais sem login (carrega uma miniatura de cada álbum).
+  function testarOficiais(cb) {
+    var alvos = OFICIAIS.filter(function (a) { return a.itens.length; }).map(function (a) { return a.itens[0].id; });
+    if (!alvos.length) return cb(false);
+    var pend = alvos.length, feito = false;
+    function fim(ok) { if (feito) return; if (ok || --pend <= 0) { feito = true; cb(!!ok); } }
+    alvos.forEach(function (id) {
+      var im = new Image();
+      im.onload = function () { fim(true); };
+      im.onerror = function () { fim(false); };
+      im.src = thumbUrl(id, 600);
+    });
+    setTimeout(function () { if (!feito) { feito = true; cb(false); } }, 6000);
+  }
 
   function setupOrigem() {
     var barra = document.getElementById('album-origem');
-    if (!barra || !temOficiais) return;         // sem oficiais: álbum como sempre foi
-    barra.hidden = false;
-    var intro = document.getElementById('convidados-intro');
-    if (intro) intro.hidden = false;
+    if (!barra) return;
     Array.prototype.forEach.call(barra.querySelectorAll('.origem-btn'), function (b) {
-      b.addEventListener('click', function () { mostrarOrigem(b.getAttribute('data-o')); });
+      b.addEventListener('click', function () { origemEscolhida = true; mostrarOrigem(b.getAttribute('data-o')); });
+    });
+  }
+  function atualizarBarraOrigem() {
+    var barra = document.getElementById('album-origem'), intro = document.getElementById('convidados-intro');
+    if (barra) barra.hidden = !oficiaisOk;
+    if (intro) intro.hidden = !oficiaisOk;
+  }
+  // Chamado ao abrir a aba Álbum.
+  function abrirAlbum() {
+    if (albumAberto) return mostrarOrigem(origemAtual);
+    albumAberto = true;
+    buscarOficiaisNoBackend();
+    if (!existemOficiais()) { oficiaisOk = false; return mostrarOrigem('convidados'); }
+    var espera = document.getElementById('album-espera');
+    var of = document.getElementById('album-oficiais'), cv = document.getElementById('album-convidados');
+    if (espera) espera.hidden = false; if (of) of.hidden = true; if (cv) cv.hidden = true;
+    testarOficiais(function (ok) {
+      if (espera) espera.hidden = true;
+      if (oficiaisOk === true) return;          // a lista do backend já confirmou antes
+      oficiaisOk = ok;
+      atualizarBarraOrigem();
+      mostrarOrigem(ok && !origemEscolhida ? 'oficiais' : origemAtual);
     });
   }
   function mostrarOrigem(qual) {
-    origemAtual = (qual === 'oficiais' && temOficiais) ? 'oficiais' : 'convidados';
+    origemAtual = (qual === 'oficiais' && oficiaisOk) ? 'oficiais' : 'convidados';
     var of = document.getElementById('album-oficiais'), cv = document.getElementById('album-convidados');
     if (of) of.hidden = origemAtual !== 'oficiais';
     if (cv) cv.hidden = origemAtual !== 'convidados';
@@ -218,6 +261,7 @@
     if (origemAtual === 'oficiais') renderOficiais();
     else if (!albumCarregado) carregarAlbum();
   }
+  var oficiaisRenderizadas = false;
   function renderOficiais() {
     if (oficiaisRenderizadas) return;
     oficiaisRenderizadas = true;
@@ -230,16 +274,19 @@
       var selo = document.createElement('span'); selo.className = 'of-selo'; selo.textContent = 'Fotos oficiais';
       var tit = document.createElement('h2'); tit.className = 'of-titulo'; tit.textContent = a.titulo;
       var meta = document.createElement('p'); meta.className = 'of-meta';
-      var partes = [];
-      if (a.data) partes.push(a.data);
-      if (a.itens.length) partes.push(a.itens.length + (a.itens.length === 1 ? ' foto' : ' fotos'));
-      if (a.credito) partes.push('Fotografia: ' + a.credito);
-      meta.textContent = partes.join(' · ');
+      function escreverMeta() {
+        var n = a.itens.filter(function (x) { return !x._indisponivel; }).length, partes = [];
+        if (a.data) partes.push(a.data);
+        if (n) partes.push(n + (n === 1 ? ' foto' : ' fotos'));
+        if (a.credito) partes.push('Fotografia: ' + a.credito);
+        meta.textContent = partes.join(' · ');
+      }
+      escreverMeta();
       cab.appendChild(selo); cab.appendChild(tit); cab.appendChild(meta);
       bloco.appendChild(cab);
       if (a.itens.length) {
         var g = document.createElement('div'); g.className = 'grade';
-        a.itens.forEach(function (it) { g.appendChild(criarCel(it, a.itens)); });
+        a.itens.forEach(function (it) { g.appendChild(criarCel(it, a.itens, escreverMeta)); });
         bloco.appendChild(g);
       } else {
         var eb = document.createElement('p'); eb.className = 'of-embreve';
@@ -249,6 +296,36 @@
       alvo.appendChild(bloco);
     });
   }
+  // Lista atual das pastas oficiais no Drive (se o backend já tiver essa ação).
+  function buscarOficiaisNoBackend() {
+    if (!BASE || BASE.indexOf('COLE_AQUI') === 0) return;
+    fetch(BASE + '?action=oficiais').then(function (r) { return r.json(); }).then(function (r) {
+      if (!r || !r.ok || !r.albuns) return;                 // backend antigo: fica a lista fixa
+      var mudou = false;
+      r.albuns.forEach(function (b) {
+        var alvo = null;
+        OFICIAIS.forEach(function (a) { if (a.chave === b.chave) alvo = a; });
+        if (!alvo || !b.itens || !b.itens.length) return;
+        var antes = alvo.itens.map(function (x) { return x.id; }).join(',');
+        var agora = b.itens.map(function (x) { return x.id; }).join(',');
+        if (antes === agora) return;
+        alvo.itens = b.itens.map(function (x) { return { id: x.id, cat: x.cat === 'video' ? 'video' : 'foto', oficial: alvo.titulo }; });
+        mudou = true;
+      });
+      if (!mudou) return;
+      oficiaisRenderizadas = false;
+      if (oficiaisOk) { if (origemAtual === 'oficiais') renderOficiais(); return; }
+      // Antes não havia oficiais visíveis: testa de novo com a lista nova.
+      testarOficiais(function (ok) {
+        if (!ok) return;
+        oficiaisOk = true; atualizarBarraOrigem();
+        var espera = document.getElementById('album-espera');
+        if (espera) espera.hidden = true;
+        if (!origemEscolhida && !paneAlbum.hidden) mostrarOrigem('oficiais');
+      });
+    }).catch(function () {});
+  }
+
   function abrirLb(lista, idx) { lbLista = lista; lbIdx = idx; mostrarLb(); lb.hidden = false; document.body.style.overflow = 'hidden'; }
   function fecharLb() { lb.hidden = true; lbMedia.innerHTML = ''; document.body.style.overflow = ''; }
   function navLb(d) { if (!lbLista.length) return; lbIdx = (lbIdx + d + lbLista.length) % lbLista.length; mostrarLb(); }

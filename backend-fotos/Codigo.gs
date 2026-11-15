@@ -324,6 +324,55 @@ function acaoListar() {
   return { ok: true, itens: out.slice(0, 1000) };
 }
 
+/**
+ * Fotos OFICIAIS (fotógrafo): pastas do Drive que o site mostra separadas das
+ * fotos dos convidados. Basta colocar arquivos nas pastas — eles aparecem no
+ * site em até ~5 min (cache). As pastas precisam estar compartilhadas como
+ * "qualquer pessoa com o link". "chave" casa com site/fotos/oficiais.js.
+ */
+var PASTAS_OFICIAIS = [
+  { chave: 'civil',  pasta: '1MG9ugAs6b1tfht9n0dJlogGamB58Tye5' },  // "Oficial - Civil"
+  { chave: 'jantar', pasta: '1hBiJ2Zp9sUhR77QFFN0FzcGKyG52Sy0z' }   // "Oficial - Festa"
+];
+
+/** GET oficiais — lista as fotos/vídeos de cada pasta oficial, por nome. */
+function acaoOficiais() {
+  var cache = CacheService.getScriptCache();
+  var guardado = cache.get('oficiais_v1');
+  if (guardado) return JSON.parse(guardado);
+
+  var token = ScriptApp.getOAuthToken();
+  var out = {
+    ok: true,
+    albuns: PASTAS_OFICIAIS.map(function (p) {
+      return { chave: p.chave, itens: listarPastaOficial(p.pasta, token) };
+    })
+  };
+  try { cache.put('oficiais_v1', JSON.stringify(out), 300); } catch (_) { /* lista grande demais p/ cache */ }
+  return out;
+}
+
+function listarPastaOficial(pastaId, token) {
+  var itens = [], pageToken = '';
+  do {
+    var url = 'https://www.googleapis.com/drive/v3/files'
+      + '?q=' + encodeURIComponent("'" + pastaId + "' in parents and trashed = false")
+      + '&fields=' + encodeURIComponent('nextPageToken,files(id,name,mimeType)')
+      + '&orderBy=name&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true'
+      + (pageToken ? '&pageToken=' + encodeURIComponent(pageToken) : '');
+    var r = UrlFetchApp.fetch(url, { headers: { 'Authorization': 'Bearer ' + token }, muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) throw new Error('Drive list HTTP ' + r.getResponseCode());
+    var j = JSON.parse(r.getContentText());
+    (j.files || []).forEach(function (f) {
+      var m = String(f.mimeType || '');
+      if (m.indexOf('image/') === 0) itens.push({ id: f.id, cat: 'foto' });
+      else if (m.indexOf('video/') === 0) itens.push({ id: f.id, cat: 'video' });
+    });
+    pageToken = j.nextPageToken || '';
+  } while (pageToken);
+  return itens;
+}
+
 /** Rode UMA vez no editor para criar a aba de log na planilha. */
 function setupAlbum() {
   abaUploads();
@@ -363,6 +412,7 @@ function doGet(e) {
     if (p.action === 'ticket') return json(emitirTicket());
     if (p.action === 'ping')   return json({ ok: true, uploadsAtivos: uploadsAtivos() });
     if (p.action === 'listar') return json(acaoListar());
+    if (p.action === 'oficiais') return json(acaoOficiais());
     if (p.action === 'diag') {
       var token = ScriptApp.getOAuthToken();
       var fid = prop('FOLDER_FOTOS', '');
