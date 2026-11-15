@@ -110,6 +110,7 @@
         renderGrade();
       });
     });
+    setupOrigem();
     document.getElementById('lb-fechar').addEventListener('click', fecharLb);
     document.getElementById('lb-prev').addEventListener('click', function () { navLb(-1); });
     document.getElementById('lb-next').addEventListener('click', function () { navLb(1); });
@@ -122,7 +123,7 @@
     tabEnviar.classList.toggle('ativa', qual === 'enviar');
     tabAlbum.classList.toggle('ativa', qual === 'album');
     if (tabMissoes) tabMissoes.classList.toggle('ativa', qual === 'missoes');
-    if (qual === 'album' && !albumCarregado) carregarAlbum();
+    if (qual === 'album') mostrarOrigem(origemAtual);
     if (qual === 'missoes') renderMissoes();
   }
   function carregarAlbum() {
@@ -150,29 +151,102 @@
       return;
     }
     albumMsg.hidden = true;
-    lista.forEach(function (it, idx) {
-      var cel = document.createElement('button'); cel.type = 'button'; cel.className = 'cel';
-      var img = document.createElement('img'); img.loading = 'lazy'; img.alt = '';
-      // Arquivo apagado do Drive (ou miniatura indisponível): some da galeria
-      // em vez de deixar um quadro quebrado.
-      img.addEventListener('error', function () {
-        it._indisponivel = true;
-        if (cel.parentNode) cel.parentNode.removeChild(cel);
+    lista.forEach(function (it) {
+      grade.appendChild(criarCel(it, lista, function () {
         if (!grade.children.length) {
           albumMsg.hidden = false; albumMsg.classList.remove('erro');
           albumMsg.textContent = 'Nada por aqui ainda. Envie a primeira foto!';
         }
-      });
-      img.src = thumbUrl(it.id, 600);
-      cel.appendChild(img);
-      if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
-      if (it.nome) { var nm = document.createElement('span'); nm.className = 'cel-nome'; nm.textContent = it.nome; cel.appendChild(nm); }
-      if (it.missao && labelMissao(it.missao)) { var mt = document.createElement('span'); mt.className = 'cel-missao'; mt.textContent = labelMissao(it.missao); cel.appendChild(mt); }
-      cel.addEventListener('click', function () {
-        var visiveis = lista.filter(function (x) { return !x._indisponivel; });
-        abrirLb(visiveis, Math.max(0, visiveis.indexOf(it)));
-      });
-      grade.appendChild(cel);
+      }));
+    });
+  }
+  // Uma célula da grade (serve para fotos dos convidados e para as oficiais).
+  function criarCel(it, lista, aoSumir) {
+    var cel = document.createElement('button'); cel.type = 'button'; cel.className = 'cel';
+    var img = document.createElement('img'); img.loading = 'lazy'; img.alt = '';
+    // Arquivo apagado do Drive (ou miniatura indisponível): some da galeria
+    // em vez de deixar um quadro quebrado.
+    img.addEventListener('error', function () {
+      it._indisponivel = true;
+      if (cel.parentNode) cel.parentNode.removeChild(cel);
+      if (aoSumir) aoSumir();
+    });
+    img.src = thumbUrl(it.id, 600);
+    cel.appendChild(img);
+    if (it.cat === 'video') { var p = document.createElement('span'); p.className = 'cel-play'; p.textContent = '▶'; cel.appendChild(p); }
+    if (it.nome) { var nm = document.createElement('span'); nm.className = 'cel-nome'; nm.textContent = it.nome; cel.appendChild(nm); }
+    if (it.missao && labelMissao(it.missao)) { var mt = document.createElement('span'); mt.className = 'cel-missao'; mt.textContent = labelMissao(it.missao); cel.appendChild(mt); }
+    cel.addEventListener('click', function () {
+      var visiveis = lista.filter(function (x) { return !x._indisponivel; });
+      abrirLb(visiveis, Math.max(0, visiveis.indexOf(it)));
+    });
+    return cel;
+  }
+
+  // ---- Fotos oficiais (fotógrafo) -----------------------------------------
+  // Vêm de oficiais.js (lista fixa de arquivos do Drive), separadas das fotos
+  // enviadas pelos convidados. Sem itens, a seção nem aparece.
+  var OFICIAIS = ((window.FOTOS_OFICIAIS && window.FOTOS_OFICIAIS.albuns) || []).map(function (a) {
+    var itens = (a.itens || []).map(function (x) {
+      return { id: x.id, cat: x.cat === 'video' ? 'video' : 'foto', oficial: a.titulo };
+    });
+    return { titulo: a.titulo, data: a.data || '', credito: a.credito || '', emBreve: !!a.emBreve, itens: itens };
+  });
+  var temOficiais = OFICIAIS.some(function (a) { return a.itens.length > 0; });
+  var origemAtual = temOficiais ? 'oficiais' : 'convidados';
+  var oficiaisRenderizadas = false;
+
+  function setupOrigem() {
+    var barra = document.getElementById('album-origem');
+    if (!barra || !temOficiais) return;         // sem oficiais: álbum como sempre foi
+    barra.hidden = false;
+    var intro = document.getElementById('convidados-intro');
+    if (intro) intro.hidden = false;
+    Array.prototype.forEach.call(barra.querySelectorAll('.origem-btn'), function (b) {
+      b.addEventListener('click', function () { mostrarOrigem(b.getAttribute('data-o')); });
+    });
+  }
+  function mostrarOrigem(qual) {
+    origemAtual = (qual === 'oficiais' && temOficiais) ? 'oficiais' : 'convidados';
+    var of = document.getElementById('album-oficiais'), cv = document.getElementById('album-convidados');
+    if (of) of.hidden = origemAtual !== 'oficiais';
+    if (cv) cv.hidden = origemAtual !== 'convidados';
+    Array.prototype.forEach.call(document.querySelectorAll('.origem-btn'), function (b) {
+      var ativa = b.getAttribute('data-o') === origemAtual;
+      b.classList.toggle('ativa', ativa); b.setAttribute('aria-pressed', ativa ? 'true' : 'false');
+    });
+    if (origemAtual === 'oficiais') renderOficiais();
+    else if (!albumCarregado) carregarAlbum();
+  }
+  function renderOficiais() {
+    if (oficiaisRenderizadas) return;
+    oficiaisRenderizadas = true;
+    var alvo = document.getElementById('oficiais-lista');
+    alvo.innerHTML = '';
+    OFICIAIS.forEach(function (a) {
+      if (!a.itens.length && !a.emBreve) return;
+      var bloco = document.createElement('section'); bloco.className = 'of-bloco';
+      var cab = document.createElement('div'); cab.className = 'of-cab';
+      var selo = document.createElement('span'); selo.className = 'of-selo'; selo.textContent = 'Fotos oficiais';
+      var tit = document.createElement('h2'); tit.className = 'of-titulo'; tit.textContent = a.titulo;
+      var meta = document.createElement('p'); meta.className = 'of-meta';
+      var partes = [];
+      if (a.data) partes.push(a.data);
+      if (a.itens.length) partes.push(a.itens.length + (a.itens.length === 1 ? ' foto' : ' fotos'));
+      if (a.credito) partes.push('Fotografia: ' + a.credito);
+      meta.textContent = partes.join(' · ');
+      cab.appendChild(selo); cab.appendChild(tit); cab.appendChild(meta);
+      bloco.appendChild(cab);
+      if (a.itens.length) {
+        var g = document.createElement('div'); g.className = 'grade';
+        a.itens.forEach(function (it) { g.appendChild(criarCel(it, a.itens)); });
+        bloco.appendChild(g);
+      } else {
+        var eb = document.createElement('p'); eb.className = 'of-embreve';
+        eb.textContent = 'Em breve por aqui.';
+        bloco.appendChild(eb);
+      }
+      alvo.appendChild(bloco);
     });
   }
   function abrirLb(lista, idx) { lbLista = lista; lbIdx = idx; mostrarLb(); lb.hidden = false; document.body.style.overflow = 'hidden'; }
@@ -183,6 +257,7 @@
     var cap = document.getElementById('lb-cap');
     if (cap) {
       var partes = [];
+      if (it.oficial) partes.push((it.cat === 'video' ? 'Vídeo oficial' : 'Foto oficial') + ' · ' + it.oficial);
       if (it.nome) partes.push('Enviado por ' + it.nome);
       if (it.missao && labelMissao(it.missao)) partes.push('Missão: ' + labelMissao(it.missao));
       cap.textContent = partes.join(' · ');

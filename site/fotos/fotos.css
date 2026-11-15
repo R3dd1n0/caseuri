@@ -124,6 +124,18 @@ body{
 .cel-missao{position:absolute; top:6px; left:6px; max-width:82%; padding:3px 7px; font-size:9.5px; line-height:1; color:#fff; background:rgba(107,30,46,.82); border-radius:999px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
 /* Filtros da galeria */
+/* Álbum: oficiais x convidados */
+.origem{display:flex; margin:0 auto 18px; max-width:380px; padding:4px; border:1px solid var(--linha); border-radius:999px; background:#fff;}
+.origem-btn{flex:1 1 0; border:0; background:transparent; color:var(--cinza); font:inherit; font-weight:600; font-size:14px; padding:10px 8px; border-radius:999px; cursor:pointer;}
+.origem-btn.ativa{background:var(--vinho); color:#fff;}
+.album-intro{font-size:13.5px; color:var(--cinza); text-align:center; margin:0 0 12px;}
+.of-bloco + .of-bloco{margin-top:34px;}
+.of-cab{text-align:center; margin-bottom:14px;}
+.of-selo{display:inline-block; font-size:10.5px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--vinho); border:1px solid var(--vinho); border-radius:999px; padding:4px 12px 4px 14px;}
+.of-titulo{font-family:var(--fonte-titulo); font-weight:600; color:var(--vinho); font-size:30px; line-height:1.1; margin:10px 0 4px;}
+.of-meta{font-size:12.5px; color:var(--cinza); letter-spacing:.04em; margin:0;}
+.of-embreve{font-size:14px; color:var(--cinza); text-align:center; margin:0; padding:22px 12px; border:1px dashed var(--linha); border-radius:var(--raio); background:#fff;}
+
 .filtros{display:flex; gap:8px; justify-content:center; margin-bottom:14px;}
 .filtro{border:1px solid var(--linha); background:#fff; color:var(--cinza); font:inherit; font-size:13px; padding:6px 14px; border-radius:999px; cursor:pointer;}
 .filtro.ativa{background:var(--creme); color:var(--vinho); border-color:var(--vinho);}
