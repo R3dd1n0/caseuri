@@ -99,7 +99,6 @@ body{
 }
 .campo-nome{display:block; margin-bottom:12px;}
 .campo-nome span{display:block; font-size:.8rem; color:var(--tinta-suave); margin-bottom:6px;}
-.campo-nome em{font-style:normal; opacity:.75;}
 #nome{
   width:100%; padding:.8rem 1rem; font:inherit; font-size:16px; color:var(--tinta);
   border:1px solid var(--linha); border-radius:10px; background:var(--creme-2);
