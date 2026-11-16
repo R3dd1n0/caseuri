@@ -56,8 +56,6 @@
         <a href="fotos/#album">Fotos</a>
         <a href="#historia">Nossa história</a>
         <a href="#quando">Quando e onde</a>
-        <a href="#dress">Dress code</a>
-        <a href="#rsvp">Presença</a>
         <a href="#presentes">Presentes</a>
         <a href="#recados">Recadinhos</a>
       </div>
@@ -77,8 +75,6 @@
         <a class="destaque" href="fotos/#album">Fotos do casamento</a>
         <a href="#historia">Nossa história</a>
         <a href="#quando">Quando e onde</a>
-        <a href="#dress">Dress Code</a>
-        <a href="#rsvp">Confirme sua presença</a>
         <a href="#presentes">Lista de presentes</a>
         <a href="#recados">Recadinhos</a>
       </nav>
@@ -118,16 +114,17 @@
             <p>Local: <strong data-bind="evento.local">·</strong></p>
             <p data-bind="evento.endereco">·</p>
           </div>
-          <p class="estacionamento" data-bind="secoes.quandoOnde.estacionamento">·</p>
-          <div class="acoes">
+          <!-- pós-festa: dica de estacionamento e rotas ficam ocultas (tirar o "hidden" para voltar) -->
+          <p class="estacionamento" data-bind="secoes.quandoOnde.estacionamento" hidden>·</p>
+          <div class="acoes" hidden>
             <a id="link-maps" class="botao botao--secundario" target="_blank" rel="noopener">Google Maps</a>
             <a id="link-waze" class="botao botao--secundario" target="_blank" rel="noopener">Waze</a>
           </div>
         </div>
       </section>
 
-      <!-- ---- DRESS CODE (igual ao PDF: renda + foto + referências) ---- -->
-      <section id="dress" class="bloco bloco--bordo bloco--dress">
+      <!-- ---- DRESS CODE — oculto no pós-festa (tirar o "hidden" para voltar) ---- -->
+      <section id="dress" class="bloco bloco--bordo bloco--dress" hidden>
         <div class="bloco-inner">
           <img class="ill ill-tower" src="assets/ill/tower.png" alt="" loading="lazy" decoding="async">
           <h2 class="script titulo-secao" data-bind="secoes.dressCode.titulo">·</h2>
@@ -137,8 +134,8 @@
         </div>
       </section>
 
-      <!-- ---- RSVP (texto escrito na folha do envelope) ---- -->
-      <section id="rsvp" class="bloco bloco--verde">
+      <!-- ---- RSVP — oculto no pós-festa (tirar o "hidden" para voltar) ---- -->
+      <section id="rsvp" class="bloco bloco--verde" hidden>
         <div class="bloco-inner">
           <img class="ill ill-rsvpfig" src="assets/ill/rsvpfig.png" alt="" loading="lazy" decoding="async">
           <h2 class="script titulo-secao" data-bind="rsvp.titulo">·</h2>

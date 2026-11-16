@@ -34,8 +34,8 @@ window.CONTEUDO = {
         'E assim começamos a construir nosso primeiro cantinho. Vieram muitas descobertas, uma vida compartilhada, o primeiro cachorro, depois o segundo, uma ou outra viagem, o segundo noivado no final de 2025, agora vai, e tantos outros capítulos que fizeram os anos passarem rápido demais.',
         'Foram quase nove anos de mudanças, desafios, incertezas, adaptações, conquistas e muitos dias comuns que, olhando para trás, se tornaram parte das nossas melhores lembranças. Fomos construindo, aos poucos, a vida que hoje é nossa.',
         'E, no meio de tudo isso, uma coisa permaneceu: a certeza de ter um ao outro.',
-        'Agora, queremos celebrar mais um passo dessa caminhada ao lado das pessoas que fizeram parte dela, que estiveram por perto nos momentos importantes e que, de alguma forma, caminharam com a gente até aqui.',
-        'É com muita alegria que convidamos vocês para celebrar o nosso casamento e, principalmente, tudo o que ainda vem pela frente!'
+        'Em novembro de 2026, celebramos mais um passo dessa caminhada ao lado das pessoas que fizeram parte dela, que estiveram por perto nos momentos importantes e que, de alguma forma, caminharam com a gente até aqui.',
+        'Foi com muita alegria que celebramos com vocês o nosso casamento e, principalmente, tudo o que ainda vem pela frente!'
       ],
       // linha do tempo (miniatura + foto grande em assets/historia/)
       fotos: [
@@ -59,7 +59,7 @@ window.CONTEUDO = {
     },
     quandoOnde: {
       titulo: 'Quando e Onde',
-      corpo: 'Reserve a data e venha comemorar com a gente.',
+      corpo: '',
       estacionamento: 'As vagas de estacionamento na rua são poucas, então vale ir de aplicativo ou combinar uma carona.'
     },
     dressCode: {
@@ -74,8 +74,8 @@ window.CONTEUDO = {
     recados: {
       titulo: 'Recadinhos',
       paragrafos: [
-        'Se você está aqui, é porque foi escolhido a dedo. Entre tantas pessoas que fazem parte da nossa história, vocês estão entre aquelas que queremos bem perto para celebrar esse momento.',
-        'Nos vemos dia 12 de novembro. 🤍'
+        'Se você está aqui, é porque foi escolhido a dedo. Entre tantas pessoas que fazem parte da nossa história, vocês estão entre aquelas que quisemos bem perto para celebrar esse momento.',
+        'Obrigado por fazerem parte da nossa história.'
       ]
     }
   },
@@ -112,7 +112,7 @@ window.CONTEUDO = {
 
   // Textos da landing (gate por nome)
   gate: {
-    titulo: 'Você está convidado',
+    titulo: 'Que bom ter você aqui',
     instrucao: 'Digite seu nome e sobrenome para entrar',
     placeholder: 'Seu nome e sobrenome',
     botao: 'Entrar',

@@ -54,6 +54,17 @@ body{
   padding:.68rem 1.1rem; cursor:pointer;
 }
 .origem-btn.ativa{background:var(--creme); color:var(--bordo); border-color:var(--creme); font-weight:600;}
+/* Telas estreitas: as duas opções continuam lado a lado */
+.origem{flex-wrap:nowrap;}
+.origem-btn{white-space:nowrap;}
+@media (max-width:400px){
+  .origem{gap:8px;}
+  .origem-btn{font-size:.7rem; letter-spacing:.09em; padding:.68rem .85rem;}
+}
+@media (max-width:340px){
+  .origem{gap:6px;}
+  .origem-btn{font-size:.64rem; letter-spacing:.05em; padding:.62rem .6rem;}
+}
 
 /* ---- Conteúdo ---- */
 .tela{max-width:640px; margin:0 auto; padding:18px 16px 44px;}
@@ -68,8 +79,18 @@ body{
 }
 .chip.ativa{background:var(--bordo); color:var(--creme); border-color:var(--bordo);}
 
-.barra-conv{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
-.barra-conv .chips{justify-content:flex-start;}
+.barra-conv{display:flex; align-items:flex-start; justify-content:space-between; gap:8px;}
+.barra-conv .chips{justify-content:flex-start; flex-wrap:nowrap; min-width:0;}
+.barra-conv .chip, .barra-conv .btn-enviar{white-space:nowrap;}
+/* Telas estreitas: tudo numa linha só (Todos · Fotos · Vídeos + Enviar) */
+@media (max-width:400px){
+  .barra-conv .chips{gap:6px;}
+  .barra-conv .chip, .barra-conv .btn-enviar{font-size:.66rem; letter-spacing:.07em; padding:.55rem .68rem;}
+}
+@media (max-width:340px){
+  .barra-conv .chips{gap:4px;}
+  .barra-conv .chip, .barra-conv .btn-enviar{font-size:.62rem; letter-spacing:.04em; padding:.5rem .5rem;}
+}
 .btn-enviar{
   flex:none; border:1px solid var(--bordo); background:transparent; color:var(--bordo);
   font:inherit; font-size:.74rem; font-weight:600; line-height:1;
